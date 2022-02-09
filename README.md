@@ -1,9 +1,9 @@
 # Matterflow: README
 ## Introduction
 
-The Lagrangian hydrodynamics are commonly used to simulate problems such as detonation, inertial confinement fusion, hypervelocity collision. A classical Lagrangian staggered-grid hydrodynamics (SGH) method easily yields the physical quantities of cell-to-cell oscillations (denoted as ``checkerboard oscillations") on triangular grids. A novel flux method, called the matter flow method, is proposed to alleviate the checkerboard oscillations for the SGH method, denoted as Matterflow package. 
+The Lagrangian hydrodynamics are commonly used to simulate problems such as detonation, inertial confinement fusion, hypervelocity collision. A classical Lagrangian staggered-grid hydrodynamics (SGH) method easily yields the physical quantities of cell-to-cell oscillations (denoted as ``checkerboard oscillations") on triangular grids. A novel flux method, called the matter flow method, is proposed to alleviate the checkerboard oscillations for the SGH method, denoted as *Matterflow* package. 
 
-Matterflow is based on the flux method described in the following article:
+*Matterflow* is based on the flux method described in the following article:
 
 > Li Zhao, Bo Xiao, Ganghua Wang, Haibo Zhao, Jinsong Bai, Chunsheng Feng, Shi Shu
 >
