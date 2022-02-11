@@ -13,79 +13,96 @@
 #include "matterflow_functs.h"
 
 
-/////////////////////////////////////////////////////////////////////////////////////////// 全局物理常数
-/// 气体普适常量
+/// Model file name
+char *modelInfoFileName = "./data/0.05/Compute_Model_For_TriAngels.txt";
+
+/// Whether to use the matter flow method, 1: ON, 0: OFF
+int HAVE_MF     = 1;     
+
+/// Choices of matter flow method
+// 0: Momentum of the midpoint, i.e. Delta P=(v1+v2)M/3; 
+// 1: Midpoint + Delta P (optimization problem), default value; 
+// 2: Delta P (optimization problem)
+int MF_Method   = 1;     
+
+/// Whether it is a Taylor-Green vortex Problem, the energy equation needs to add a source term
+int TaylorGreen = 1;     
+
+/// Times of viscosity coefficient (adjustable)
+double ViscCoeffTimes = 2; 
+
+/// Time-step factor
+double timeStepSafeFactor = 0.5; 
+
+/// Gas Universal Constant
 double ROfGas = 8.3149 * 1.0e-5; // 8.3149*J.mol^-1.k^-1
-//////////////////////////////////////////////////////////////////
-/// Mesh structure
-struct meshObject MeshObj;
-/// <summary>
-/// 第0个元素——无意义，第1个元素——绝缘体类型的墙壁材料，第2个元素——理想导体类型的墙壁材料。
-/// </summary>
-struct materialParameters MatWall[3];
-/// 物质种类集合
-struct materialParameters MatParasList[MAX_MAT_TYPE];
-int MatParasListLen;
-//////////////////////////////////////////////////////////////////
-/// <summary>
-/// 记录系统演化的时间，用于续算.
-/// </summary>
+
+/// Records the time of system evolution for continued calculation.
 double TimeEvolvedRecord = 0.0;
-/// <summary>
-/// 系统演化的时间数。（它等于时间除以某个间隔）
-/// </summary>
+
+/// The number of times the system has evolved. (it is equal to time divided by some interval)
 int TimeNumbers = 0;
-/// <summary>
-/// 图片数（它等于时间除以图片输出间隔）
-/// </summary>
+
+/// Number of pictures (Tecplot files) (it is equal to time divided by picture output interval)
 int TimeCountForBitmap = 0;
-/// <summary>
-/// 用来控制数据输出的时间间隔
-/// </summary>
+
+/// Time interval used to control data output
 double TimeInterval = 1.0;
-/// <summary>
-/// 用来控制程序运行的结束时间
-/// </summary>
+
+/// Used to control the end time of the program running
 double TimeEnd = 1.0;
-/// <summary>
-/// 输出的图片数目
-/// </summary>
+
+/// The number of pictures (Tecplot files) to output
 int TotBitmapOutputs = 100;
+
+/// Initialize the number of iterations
 int Iter = 0;
-//////////////////////////////////////////////////////////////////
+
+/// The file name of the statistical physical quantites
 FILE * PhysQuantStatisticsFile;
-char * modelInfoFileName = "./data/0.05/Compute_Model_For_TriAngels.txt";
 
+/// Total simulation time (initialization)
+double TotTime = 0; 
 
-//////////////////////////////// 物质流动 //////////////////////////////////
-int HAVE_MF     = 1;     // 物质流动开关, 1: ON, 0: OFF
-int MF_Method   = 1;     // 0: 中点的动量, 即 Delta P=（v1+v2）M/3； 1：中点 + Delta P （优化问题）, 缺省值;  2: Delta P （优化问题）
-int PistonFlag  = 0;     // 活塞问题标记
-int TaylorGreen = 1;     // 是否为Taylor-Green vortex Problem, 能量方程需要增加源项
-
-
-
-// 时间
-double TotTime = 0; // 总时间
+/// Matter flow time (initialization)
 double MatterFlowTime = 0;
+
+/// Auxiliary variable (initialization)
 clock_t Start_time = 0;
+
+/// Auxiliary variable (initialization)
 clock_t End_time = 0;
 
+/// Auxiliary variable (initialization)
+bool CellDirFirstCreateFlag = true; 
 
-bool CellDirFirstCreateFlag = true;
+/// Auxiliary variable (initialization)
 bool VertexDirFirstCreateFlag = true;
 
-
-// 粘性系数的倍数（可调）
-double ViscCoeffTimes = 2; 
-double timeStepSafeFactor = 0.5; // 0.5 时间步长因子
-
-
+// Zero vector
 vec2D ZeroVec2D = { 0, 0 };
+
+// Unit vector
 vec2D UnitVecR = { 1, 0 };
+
+// Unit tensor
 tensor2D UnitTensor = {1, 0, 0, 1};
+
+// Zero tensor
 tensor2D ZeroTensor = {0, 0, 0, 0};
 
+/// Mesh structure
+struct meshObject MeshObj;
 
+// Material structure
+/// 0th element - meaningless, 
+/// 1st element - insulator type wall material, 
+/// 2nd element - ideal conductor type wall material.
+struct materialParameters MatWall[3];
 
+/// Collection of materials
+struct materialParameters MatParasList[MAX_MAT_TYPE];
+
+// The number of materials
+int MatParasListLen;
 

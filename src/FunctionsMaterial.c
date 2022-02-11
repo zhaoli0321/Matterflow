@@ -14,11 +14,7 @@
 
 
 
-// double TableEOSCalcDensity(int eosTableIndex, double pressure, double temperature);
-/// <summary>
-/// 创建真空材料
-/// </summary>
-/// <returns></returns>
+/// Create a vacuum material
 void MakeVacuumMaterial(Material matVacuum)
 {
 	/////////////////////////////////////////////
@@ -26,42 +22,39 @@ void MakeVacuumMaterial(Material matVacuum)
 	strcpy(matVacuum->MaterialName, "Vacuum");
 	///////////////////////
 	matVacuum->EOSType = EOSTypeEnum_Linear;
-	matVacuum->NormalDensity = 1e-8;    //室温室压密度
-	matVacuum->Kai = 1e-10;             //体模量（可以在计算中动态调整）
+	matVacuum->NormalDensity = 1e-8;    // Room temperature/pressure density 
+	matVacuum->Kai = 1e-10;             // Bulk modulus
 	matVacuum->SpecificHeat = 1.0;
 }
 
 
-/// <summary>
-/// 从文件中导入材料数据列表
-/// </summary>
-/// <param name="sr"></param>
+/// Import material data list from file
 void LoadMaterialListFromFile(FILE * fr)
 {
 	char line[1001], words[3][1001];
-	////////////////////////////////////////////// 第 0 个元素放真空材料
+	////////////////////////////////////////////// 0th element put vacuum material
 	MakeVacuumMaterial(&MatParasList[MatParasListLen++]);
-	////////////////////////////////////////////// 找到“>>”记号
-	if (SearchNextInFile(fr, ">> 材料设定") == false)
+	////////////////////////////////////////////// 
+	if (SearchNextInFile(fr, ">> Material Settings") == false)
 	{
-		ERR("没有找到“>> 材料设定”\n");
+		ERR("Does not find \">> Material Settings\"\n");
 	}
-	////////////////////////////////////////////// 读取材料列表
+	////////////////////////////////////////////// Read the material list
 	{
 		Material lastMatParas = NULL;
 		int materialNumber = 1;
-		bool relateMaterialIsNeed = false;//标记是否需要创建关联材料
+		bool relateMaterialIsNeed = false; // Flag if associated material needs to be created
 		while (true)
 		{
-			///////////////////////////////////////// 读取一个材料
+			///////////////////////////////////////// read a material
 			fgets(line, 1000, fr);
 			if (feof(fr))
 			{
-				ERR("材料格式不符合要求\n");
+				ERR("Material format does not meet requirements\n");
 			}
 			if (ContainStr(line, "--------------------"))
 			{
-				////////////////////////////////////////// 创建一个新材料
+				////////////////////////////////////////// Create a new material
 				MatParasListLen++;
 				lastMatParas = &MatParasList[MatParasListLen - 1];
 				lastMatParas->MaterialNumber = materialNumber++;
@@ -106,7 +99,7 @@ void LoadMaterialListFromFile(FILE * fr)
 					else if (strcmp(words[0], "SpecificHeat") == 0)
 					{
 						lastMatParas->SpecificHeat = StringToDouble(words[2]);
-						lastMatParas->SpecificHeat *= 1e-5;//将输入文件的单位 J/(g*K) 转换为程序中的标准单位 10^5 J/(g*K)
+						lastMatParas->SpecificHeat *= 1e-5; // Convert the unit of the input file J/(g*K) to the standard unit in the program 10^5 J/(g*K)
 					}
 					else if (strcmp(words[0], "Gamma") == 0)
 					{
@@ -119,7 +112,7 @@ void LoadMaterialListFromFile(FILE * fr)
 					else if (strcmp(words[0], "MotionViscos") == 0)
 					{
 						lastMatParas->MotionViscos = StringToDouble(words[2]);
-						lastMatParas->MotionViscos *= 0.01;//将输入文件的单位 m^2/s 转换为程序中的标准单位 cm^2/us
+						lastMatParas->MotionViscos *= 0.01; // Convert the unit m^2/s of the input file to the standard unit cm^2/us in the program
 					}
 				}
 			}
@@ -128,9 +121,7 @@ void LoadMaterialListFromFile(FILE * fr)
 }
 
 
-/// <summary>
-/// 将输入文件中用户输入的材料号转换为系统材料位置号。
-/// </summary>
+/// Converts the material number entered by the user in the input file to the system material position number.
 int ConvertUserInputMatNumToSystemMatID(int matNum)
 {
 	int systemMatID;
@@ -142,27 +133,19 @@ int ConvertUserInputMatNumToSystemMatID(int matNum)
 }
 
 
-/// <summary>
-/// 状态方程，从密度、温度计算压强和比内能
-/// </summary>
-/// <param name="material">材料号</param>
-/// <param name="density">密度(g/cm^3)</param>
-/// <param name="temperature">温度(K)</param>
-/// <param name="pressure">压强(10^11 Pa, Mbar)</param>
-/// <param name="specificEnergy">单位质量的内能（10^5 J/g）</param>
-/// <returns></returns>
+/// Equation of state, calculation of pressure and specific internal energy from density, temperature
 void EOSCalcPressureEnergy(int matId, double density, double temperature, double * pressure, double * specificEnergy)
 {
 	Material material = matId >= 0 ? &MatParasList[matId] : &MatWall[-matId];
 	/////////////////////////////////////////////
 	EOSTypeEnum eosType = material->EOSType;
-	//////////////////////////////////////////// 第 1 种系统材料的状态方程（正压流体状态方程）
+	//////////////////////////////////////////// Equation of state for material 1 (positive fluid equation of state)
 	if (eosType == EOSTypeEnum_Linear)
 	{
 		(*pressure) = material->Kai * (density - material->NormalDensity) / material->NormalDensity;
 		(*specificEnergy) = temperature * material->SpecificHeat;
 	}
-	//////////////////////////////////////////// 第 2 种系统材料的状态方程（多方气体状态方程）
+	//////////////////////////////////////////// Equation of state for material 2 (polygonal gas equation of state)
 	else if (eosType == EOSTypeEnum_IdealGas)
 	{
 		(*pressure) = temperature * ROfGas * density / material->MolMass;
@@ -176,27 +159,19 @@ void EOSCalcPressureEnergy(int matId, double density, double temperature, double
 	}
 }
 
-/// <summary>
-/// 状态方程，从密度、比内能计算压强和温度
-/// </summary>
-/// <param name="material">材料号</param>
-/// <param name="density">密度(g/cm^3)</param>
-/// <param name="temperature">温度(K)</param>
-/// <param name="pressure">压强(10^11 Pa, Mbar)</param>
-/// <param name="specificEnergy">单位质量的内能（10^5 J/g）</param>
-/// <returns></returns>
+/// Equation of state, calculation of pressure and temperature from density, specific internal energy
 void EOSCalcPressureTemperature(int matId, double density, double specificEnergy, double * pressure, double * temperature)
 {
 	Material material = matId >= 0 ? &MatParasList[matId] : &MatWall[-matId];
 	/////////////////////////////////////////////
 	EOSTypeEnum eosType = material->EOSType;
-    //////////////////////////////////////////// 第 1 种系统材料的状态方程（正压流体状态方程）
+    //////////////////////////////////////////// Equation of state for material 1 (positive fluid equation of state)
     if (eosType == EOSTypeEnum_Linear)
     {
         (*pressure) = material->Kai * (density - material->NormalDensity) / material->NormalDensity;
         (*temperature) = specificEnergy / material->SpecificHeat;
     }
-    //////////////////////////////////////////// 第 2 种系统材料的状态方程（多方气体状态方程）
+    //////////////////////////////////////////// Equation of state for material 2 (polygonal gas equation of state)
     else if (eosType == EOSTypeEnum_IdealGas)
     {
         (*pressure) = specificEnergy * ((material->Gamma - 1) * density);
@@ -211,19 +186,12 @@ void EOSCalcPressureTemperature(int matId, double density, double specificEnergy
 }
 
 
-/// <summary>
-/// 利用二分法，从压强和温度，倒推密度。
-/// </summary>
-/// <param name="material"></param>
-/// <param name="pressure"></param>
-/// <param name="temperature"></param>
-/// <param name="density"></param>
-/// <param name="specificEnergy"></param>
+/// Using the dichotomy method, calculation density from pressure and temperature
 double EOSCalcDensity(int matId, double pressure, double temperature)
 {
 	double pTemp, specificEnergy, density, d1, d2;
 	int i;
-	///////////////////////////////////////////////////// 首先获得密度的上下限
+	///////////////////////////////////////////////////// First get the upper and lower bounds of the density
 	density = 1.0;
 	EOSCalcPressureEnergy(matId, density, temperature, &pTemp, &specificEnergy);
 	if (pTemp < pressure)
@@ -250,7 +218,7 @@ double EOSCalcDensity(int matId, double pressure, double temperature)
 			d2 = d1;
 		}
 	}
-	///////////////////////////////////////////////////// 然后用二分法搜寻，直到pTemp与pressure相隔很近
+	///////////////////////////////////////////////////// Then search with dichotomy until pTemp is very close to pressure
 	do
 	{
 		density = 0.5 * (d1 + d2);
@@ -265,14 +233,7 @@ double EOSCalcDensity(int matId, double pressure, double temperature)
 }
 
 
-/// <summary>
-/// 从材料的应变率和密度计算粘性应力.
-/// 人工动态粘性系数 和 物理粘性系数 中，哪一个更大就用哪一个。
-/// </summary>
-/// <param name="idMaterial"></param>
-/// <param name="strainRatio"></param>
-/// <param name="density"></param>
-/// <returns></returns>
+/// Computes viscous stress from the material's strain rate and density.
 double CalcViscosStress(int matId, double strainRatio, double density, double cViscDynArti)
 {
 	Material material = matId >= 0 ? &MatParasList[matId] : &MatWall[-matId];
@@ -281,7 +242,8 @@ double CalcViscosStress(int matId, double strainRatio, double density, double cV
 	////////////////////////////////////////////
 	if (material->MotionViscos > cViscDynArti)
 	{
-		viscosStress = -material->MotionViscos * strainRatio * density;//从运动粘性系数计算粘性应力需要乘以材料密度
+		// Calculating viscous stress from kinematic viscosity coefficient requires multiplying material density
+		viscosStress = -material->MotionViscos * strainRatio * density; 
 	}
 	else
 	{
@@ -292,12 +254,7 @@ double CalcViscosStress(int matId, double strainRatio, double density, double cV
 }
 
 
-/// <summary>
-/// 读取一种材料的粘性系数。（用于计算粘性决定的时间步长）
-/// 20171104
-/// </summary>
-/// <param name="idMaterial"></param>
-/// <returns></returns>
+/// Returns the viscosity coefficient of the material
 double GetViscousCoefficient(int matId)
 {
 	Material material = matId >= 0 ? &MatParasList[matId] : &MatWall[-matId];
@@ -306,13 +263,7 @@ double GetViscousCoefficient(int matId)
 }
 
 
-/// <summary>
-/// 从压强和比质量密度计算指定材料号的声速
-/// </summary>
-/// <param name="idMaterial"></param>
-/// <param name="temperature"></param>
-/// <param name="density"></param>
-/// <returns></returns>
+/// Calculate the speed of sound for a given material number from pressure and specific mass density
 double CalcSoundVelocity(int matId, double density, double temperature)
 {
 	Material material = matId >= 0 ? &MatParasList[matId] : &MatWall[-matId];
@@ -320,12 +271,12 @@ double CalcSoundVelocity(int matId, double density, double temperature)
 	double soundVelocity = 1.0;
 	/////////////////////////////////////////////////
 	EOSTypeEnum eosType = material->EOSType;
-	//////////////////////////////////////////// 第 1 种系统材料的声速（轻重流体状态方程）
+	//////////////////////////////////////////// 
 	if (eosType == EOSTypeEnum_Linear)
 	{
 		soundVelocity = sqrt(material->Kai / material->NormalDensity);
 	}
-	//////////////////////////////////////////// 第 2 种系统材料的声速（多方气体状态方程）。改正声速公式错误20190325（错误源于一维程序）
+	//////////////////////////////////////////// 
 	else if (eosType == EOSTypeEnum_IdealGas)
 	{
 		soundVelocity = sqrt(material->Gamma * temperature * ROfGas / material->MolMass);
@@ -335,13 +286,7 @@ double CalcSoundVelocity(int matId, double density, double temperature)
 }
 
 
-/// <summary>
-/// 计算指定材料的de/dT
-/// </summary>
-/// <param name="idMaterial"></param>
-/// <param name="density"></param>
-/// <param name="temperature"></param>
-/// <returns></returns>
+/// Calculate de/dT for a given material
 double CalcSpecificEnergyToTemperature(int matId, double density, double temperature)
 {
 	Material material = matId >= 0 ? &MatParasList[matId] : &MatWall[-matId];
@@ -349,12 +294,12 @@ double CalcSpecificEnergyToTemperature(int matId, double density, double tempera
 	double deOverDT = 1.0;
 	/////////////////////////////////////////////////
 	EOSTypeEnum eosType = material->EOSType;
-	//////////////////////////////////////////// 第 1 种系统材料（线弹性流体状态方程）
+	//////////////////////////////////////////// 
 	if (eosType == EOSTypeEnum_Linear)
 	{
 		deOverDT = material->SpecificHeat;
 	}
-	//////////////////////////////////////////// 第 2 种系统材料（多方气体状态方程）
+	//////////////////////////////////////////// 
 	else if (eosType == EOSTypeEnum_IdealGas)
 	{
 		deOverDT = ROfGas / ((material->Gamma - 1) * material->MolMass);
@@ -364,27 +309,23 @@ double CalcSpecificEnergyToTemperature(int matId, double density, double tempera
 }
 
 
-/// <summary>
-/// 从材料的应变率和密度计算粘性应力张量
-/// </summary>
-/// <param name="idMaterial"></param>
-/// <param name="strainRatio"></param>
-/// <param name="density"></param>
-/// <returns></returns>
+/// Calculate the viscous stress tensor from the material's strain rate and density
 tensor2D CalcViscosStressTensor(int matId, tensor2D strainRatioTensor, double density, double cViscDynArti)
 {
 	Material material = matId >= 0 ? &MatParasList[matId] : &MatWall[-matId];
 	/////////////////////////////////////////////
 	tensor2D viscosStress;
-	//////////////////////////////////////////// 从运动粘性系数计算粘性应力需要乘以材料密度
+	//////////////////////////////////////////// 
 	if (matId == 0)
 	{
-		viscosStress = CValueMultTensor2D(-cViscDynArti * density, strainRatioTensor);//从运动粘性系数计算粘性应力需要乘以材料密度
+		// Calculating viscous stress from kinematic viscosity coefficient requires multiplying material density
+		viscosStress = CValueMultTensor2D(-cViscDynArti * density, strainRatioTensor); 
 	}
 	else
 	{
-		double maxViscCoeff = max(material->MotionViscos, cViscDynArti);//物理粘性和人工动态粘性哪一个更大就用哪一个20180403	
-		// 标量粘性
+		// Physical viscosity and artificial dynamic viscosity take the maximum value
+		double maxViscCoeff = max(material->MotionViscos, cViscDynArti);
+		// scalar viscosity
 		viscosStress = CValueToTensor2D((-maxViscCoeff * density) * TraceAverage(strainRatioTensor));	
 	}
 	////////////////////////////////////////////

@@ -12,25 +12,22 @@
 #include "matterflow.h"
 #include "matterflow_functs.h"
 
-/*------------------------------------------------------------------------------------------------*/
-// 后处理文件，打印模拟时间
-/*------------------------------------------------------------------------------------------------*/
 
-/* 创建目录: 判断目录是否存在，若不存在，则创建目录 */
+/* Create directory: determine whether the directory exists, if not, create the directory */
 void CreateDirectory(char *dirName)
 {			
-	int isExistDir = access(dirName, 0);// 0(存在), -1(不存在)
+	int isExistDir = access(dirName, 0); // 0(exist), -1(does not exist)
 	if(isExistDir == -1){
 		char mkdir[128];
 		sprintf(mkdir, "mkdir %s", dirName);
 		//printf("dirName = %s\n", dirName);
-		system(mkdir);
+		system(mkdir); // create directory
 	}
 }
 
 
-
-void PrintTime()
+// Numerical Simulation Information
+void PrintNSInformation()
 {
     printf("\r\n\r\n");
     printf("                            Numerical Simulation Information                                \r\n");
@@ -46,12 +43,12 @@ void PrintInfo()
 {
 	printf("HAVE_MF = %d, MF_Method = %d, TotBitmapOutputs = %d \n\n", HAVE_MF, MF_Method, TotBitmapOutputs);
 	printf("Times of viscosity coefficient %.4f, C_safe = %.4f\n\n", ViscCoeffTimes, timeStepSafeFactor);
-	printf("Domain Omega = [0, %.2f] x [0, %.2f]\n", MeshObj.Width, MeshObj.Height); // 打印区域大小
+	printf("Domain Omega = [0, %.2f] x [0, %.2f]\n", MeshObj.Width, MeshObj.Height); // print domain size
 	printf("\n");
 }
 
 
-//// 输出网格尺寸
+//// Output mesh size
 void PrintMeshScale()
 {
 	int i, k;
@@ -74,10 +71,12 @@ void PrintMeshScale()
 }
 
 
-// 写TecPlot格式的单元数据和节点数据 
-void WriteTecPlotCellDataFromNormalGrid()
+// Write cell data and node data in TecPlot format (TecPlot software)
+// The output directory is TecPlot/cPhysicsFile (cell data)
+// The output directory is TecPlot/vPhysicsFile (node data)
+void WriteTecPlot()
 {
-    /////////////////////// 声明变量 ////////////////////////////
+    /////////////////////// declare variables ////////////////////////////
     char        fileName[256];
 	char        rootDir[64] = "TecPlot";
 	char        subDir[64] = "cPhysicsFile";
@@ -90,17 +89,17 @@ void WriteTecPlotCellDataFromNormalGrid()
     ////////////////////////////////////////////////////////////
 
     /*------------------------------------------------------------------------------------------------*/
-    // 单元数据
+    // cell data
     /*------------------------------------------------------------------------------------------------*/
-    /* 判断目录是否存在，若不存在，则创建目录 */
+    /* Determine whether the directory exists, if not, create the directory */
     if(CellDirFirstCreateFlag){
         CreateDirectory(rootDir);
         sprintf(currentDir, "%s/%s", rootDir, subDir);
         CreateDirectory(currentDir);
-        // 子目录
+        // subdirectory
         {
             sprintf(subsubDir, "%s", currentDir);
-            int isExistSubDir = access(subsubDir, 0);// 0(存在), -1(不存在)
+            int isExistSubDir = access(subsubDir, 0);
             if(isExistSubDir == -1){
                 char mkdir[512];
                 sprintf(mkdir, "mkdir %s", subsubDir);
@@ -110,8 +109,8 @@ void WriteTecPlotCellDataFromNormalGrid()
                 sprintf(mkdir, "mkdir %s", subsubDir);
                 sprintf(rm, "rm -r %s", subsubDir);
 
-                system(rm);//先delete
-                system(mkdir);// 再mkdir
+                system(rm); // first delete the directory
+                system(mkdir); // then create the directory
             }
         }
         CellDirFirstCreateFlag = false;								
@@ -121,7 +120,7 @@ void WriteTecPlotCellDataFromNormalGrid()
     sprintf(fileName, "%s/%s_%d_%d.dat", currentDir, prefixFileName, TimeCountForBitmap, Iter);
 
 
-// 统计真空单元数
+// Count the number of vacuum elements
 int VacuumNEM = 0;
 #if Omit_Vacuum_Element     
     for(c = 0; c < cSize; c++)
@@ -136,14 +135,14 @@ int VacuumNEM = 0;
     // tecplot
     fp = fopen(fileName, "w");
 
-    // write tecplot head file
+    // write head file in TecPlot format 
     fprintf(fp, "TITLE = \"2D: Cells Data, Time = %e s\"\n", TimeEvolvedRecord);
     fprintf(fp, "VARIABLES = \"X\", \"Y\", \"Pressure\", \"Density\", \"Temperature\", \"MaterialID\", \"Mass\", \"InternalEnergy\"\n");
     fprintf(fp, "ZONE T = \"%e\", NODES=%d, ELEMENTS=%d, DATAPACKING=BLOCK, VARLOCATION=([3-8]=CELLCENTERED), ZONETYPE=FETRIANGLE\n",
                                 TimeEvolvedRecord, vSize, cSize - VacuumNEM);
     
 
-    // write node and variable
+    // write node coordinates and variables
     // 1) x_coord
     double X, Y;
     for  (v = 0; v < vSize; v++)
@@ -228,9 +227,9 @@ int VacuumNEM = 0;
 
 
     /*------------------------------------------------------------------------------------------------*/
-    // 节点数据
+    // Node data
     /*------------------------------------------------------------------------------------------------*/
-    /////////////////////// 声明变量 ////////////////////////////
+    /////////////////////// declare variables ////////////////////////////
 	char			vfileName[256];
 	char        	vrootDir[64] = "TecPlot";
 	char        	vsubDir[64] = "vPhysicsFile";
@@ -239,15 +238,15 @@ int VacuumNEM = 0;
 	char			vprefixFileName[30] = "vPhysics";
     Vertex          vert;
 
-    /* 判断目录是否存在，若不存在，则创建目录 */
+    /* Determine whether the directory exists, if not, create the directory */
     if(VertexDirFirstCreateFlag){
         CreateDirectory(vrootDir);
         sprintf(vcurrentDir, "%s/%s", vrootDir, vsubDir);
         CreateDirectory(vcurrentDir);
-        // 子目录
+        // subdirectory
         {
             sprintf(vsubsubDir, "%s", vcurrentDir);
-            int isExistSubDir = access(vsubsubDir, 0);// 0(存在), -1(不存在)
+            int isExistSubDir = access(vsubsubDir, 0);
             if(isExistSubDir == -1){
                 char mkdir[512];
                 sprintf(mkdir, "mkdir %s", vsubsubDir);
@@ -257,8 +256,8 @@ int VacuumNEM = 0;
                 sprintf(mkdir, "mkdir %s", vsubsubDir);
                 sprintf(rm, "rm -r %s", vsubsubDir);
 
-                system(rm);//先delete
-                system(mkdir);// 再mkdir
+                system(rm);     // first delete the directory
+                system(mkdir);  // then create the directory
             }
         }
         VertexDirFirstCreateFlag = false;								
@@ -272,7 +271,7 @@ int VacuumNEM = 0;
     // tecplot
     fp = fopen(vfileName, "w");
     
-    // write tecplot head file
+    // write head file in TecPlot format 
     fprintf(fp, "TITLE = \"2D: Vertices Data, Time = %e s\"\n", TimeEvolvedRecord);
     fprintf(fp, "VARIABLES = \"X\", \"Y\", "
                 "\"Mass\", " 
@@ -286,7 +285,7 @@ int VacuumNEM = 0;
     fprintf(fp, "ZONE T = \"%e\", NODES=%d, ELEMENTS=%d, DATAPACKING=POINT, ZONETYPE=FETRIANGLE\n", TimeEvolvedRecord, vSize, cSize - VacuumNEM);
     
     ////////////////////////////////////////////////////////////
-    // write node and variable
+    // write node coordinates and variables
     for  (v = 0; v < vSize; v++)
     {
         vert = &MeshObj.Vertices[v];
@@ -307,7 +306,7 @@ int VacuumNEM = 0;
                     vert->Mass, 		                // Mass
                     vert->Velocity.X, 	                // Velocity_X
                     vert->Velocity.Y,	                // Velocity_Y
-                    sqrt(vert->Velocity.X*vert->Velocity.X+vert->Velocity.Y*vert->Velocity.Y), // Velocity
+                    sqrt(vert->Velocity.X*vert->Velocity.X+vert->Velocity.Y*vert->Velocity.Y), // Velocity size
                     vert->Force.X,		                // Force_X
                     vert->Force.Y, 		                // Force_Y
                     vert->ForceForMatterFlow.X, 		// ForceForMatterFlow_X
@@ -330,9 +329,9 @@ int VacuumNEM = 0;
 
 
 /*------------------------------------------------------------------------------------------------*/
-// 后处理文件，针对 TaylorGreen 问题，计算误差, 2021.11.08
+// Computational error for Taylor-Green problem, 2021.11.08
 /*------------------------------------------------------------------------------------------------*/
-// 压强解析解
+// Pressure analytical solution
 double PressureAnalyticalSolution_TaylorGreen(double xc, double yc)
 {
     double rho = 1;
@@ -340,7 +339,7 @@ double PressureAnalyticalSolution_TaylorGreen(double xc, double yc)
 }
 
 
-// 速度解析解
+// Velocity Analytical Solution
 void VelocityAnalyticalSolution_TaylorGreen(double x, double y, double *vx, double *vy)
 {
     *vx =   sin(PI*x)*cos(PI*y);
@@ -348,7 +347,7 @@ void VelocityAnalyticalSolution_TaylorGreen(double x, double y, double *vx, doub
 }
 
 
-// 针对TaylorGreen问题，计算速度，压强的误差
+// For Taylor-Green problem, the error of calculation velocity and pressure
 void TaylorGreenL2Norm()
 {
     int         v = 0, c = 0, vSize = MeshObj.VertsArrLen, cSize = MeshObj.TrgsArrLen;
@@ -356,13 +355,13 @@ void TaylorGreenL2Norm()
     double      VelL2 = 0, PreL2 = 0;
     double      vx_exact, vy_exact, vx, vy, p_exact, p;
 
-    /////// 节点量
+    /////// For node 
     for  (v = 0; v < vSize; v++)
     {
         x = MeshObj.Vertices[v].Pos.X;
         y = MeshObj.Vertices[v].Pos.Y;
         
-        // 计算速度解析解
+        // Computational velocity analytical solution
         VelocityAnalyticalSolution_TaylorGreen(x, y, &vx_exact, &vy_exact);
         
         vx = MeshObj.Vertices[v].Velocity.X;
@@ -373,7 +372,7 @@ void TaylorGreenL2Norm()
     VelL2 /= sqrt(vSize);
 
 
-    /////// 单元量
+    /////// For cell
     for(c = 0; c < cSize; c++)
     {
         xc = (MeshObj.Trgs[c].Vertices[0]->Pos.X + MeshObj.Trgs[c].Vertices[1]->Pos.X + MeshObj.Trgs[c].Vertices[2]->Pos.X) / 3.0;
@@ -392,7 +391,7 @@ void TaylorGreenL2Norm()
 }
 
 
-// 针对TaylorGreen问题，计算速度，压强的 Volume-Weighted L1误差
+// Volume-Weighted L1 error of calculation speed and pressure for Taylor-Green problem
 void VolumeWeightedL1Norm()
 {
     int         v = 0, c = 0, vSize = MeshObj.VertsArrLen, cSize = MeshObj.TrgsArrLen;
@@ -401,7 +400,7 @@ void VolumeWeightedL1Norm()
     double      vx_exact, vy_exact, vx, vy, p_exact, p, elem_vol, *node_vol = NULL;
 
     node_vol = (double *) calloc(vSize, sizeof(double));
-    /////// 单元量, 计算节点控制体的体积
+    /////// Calculate the volume of the node control volum
     for(c = 0; c < cSize; c++)
     {
         xc = (MeshObj.Trgs[c].Vertices[0]->Pos.X + MeshObj.Trgs[c].Vertices[1]->Pos.X + MeshObj.Trgs[c].Vertices[2]->Pos.X) / 3.0;
@@ -414,26 +413,25 @@ void VolumeWeightedL1Norm()
         p = MeshObj.Trgs[c].Pressure;
         elem_vol = MeshObj.Trgs[c].Area;
         
-        // 计算节点控制体的体积
+        // Calculate the volume of the node control volume
         node_vol[MeshObj.Trgs[c].Vertices[0]->Index] += elem_vol / 3.0;
         node_vol[MeshObj.Trgs[c].Vertices[1]->Index] += elem_vol / 3.0;
         node_vol[MeshObj.Trgs[c].Vertices[2]->Index] += elem_vol / 3.0;
 
         if (MeshObj.Trgs[c].MaterialId > 0){
-            // 计算压强的 Volume-Weighted L1误差
+            // Calculate Volume-Weighted L1 Error of Pressure
             TotalElementVolume += elem_vol;
             PreL1 += fabs(p_exact - p)*elem_vol;
         }
     }
     PreL1 /= TotalElementVolume;
 
-    /////// 节点量
     for  (v = 0; v < vSize; v++)
     {
         x = MeshObj.Vertices[v].Pos.X;
         y = MeshObj.Vertices[v].Pos.Y;
         
-        // 计算速度解析解
+        // Computational velocity analytical solution
         VelocityAnalyticalSolution_TaylorGreen(x, y, &vx_exact, &vy_exact);
         
         vx = MeshObj.Vertices[v].Velocity.X;
@@ -464,7 +462,7 @@ void TaylorGreenOutPutBottomEdgePhysics()
     char        vfileName[128] = "";
     char        cfileName[128] = "";
 
-    /////// 节点量
+    /////// For node
     sprintf(vfileName, "%s.txt", "Velocity_x_BottomEdge");
     fp = fopen(vfileName, "w");
 
@@ -476,7 +474,7 @@ void TaylorGreenOutPutBottomEdgePhysics()
         x = MeshObj.Vertices[v].Pos.X;
         y = MeshObj.Vertices[v].Pos.Y;
         
-        // 计算速度解析解
+        // Computational velocity analytical solution
         VelocityAnalyticalSolution_TaylorGreen(x, y, &vx_exact, &vy_exact);
         
         vx = MeshObj.Vertices[v].Velocity.X;
@@ -488,22 +486,22 @@ void TaylorGreenOutPutBottomEdgePhysics()
     fclose(fp);
 
        
-    /////// 单元量
-    // 生成顶点相邻的三角形编号数组
+    /////// For cell
+    // Generates an array of triangle numbers with adjacent vertices
     int *vnbtrgmark     = (int *) calloc(vSize, sizeof(int));
     int (*vnbtrg)[25]   = (int(*)[25]) calloc(vSize*25, sizeof(int));
     // int (*vnbtrg)[25]   = (int *) calloc(vSize*25, sizeof(int));
     int k, t;
 
-	/// 遍历三角形单元
+	/// Traversal triangular element
 	for (c = 0; c < cSize; c++)
 	{
 		for (v = 0; v < 3; v++ )
 		{
-			k = MeshObj.Trgs[c].Vertices[v]->Index; // v节点编号
+			k = MeshObj.Trgs[c].Vertices[v]->Index; // nodal index
 			t = vnbtrgmark[k];
-			vnbtrg[k][t] = c; //存放相邻三角形单元编号
-			vnbtrgmark[k]++;  //计算相邻三角形单元个数		
+			vnbtrg[k][t] = c; // Store the index of adjacent triangle elements
+			vnbtrgmark[k]++;  // Count the number of adjacent triangle elements		
 		}
 	}
 
@@ -518,7 +516,7 @@ void TaylorGreenOutPutBottomEdgePhysics()
         x = MeshObj.Vertices[v].Pos.X;
         y = MeshObj.Vertices[v].Pos.Y;
         
-        // 计算压强解析解
+        // Calculate the pressure analytical solution
         p_exact = PressureAnalyticalSolution_TaylorGreen(x, y);
         
         p = 0.0;

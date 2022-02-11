@@ -1,37 +1,37 @@
->> 材料设定（目前程序中包含的各种模型如下）
+>> Material Settings
 
-  材料状态方程类型有：
-  1. 线弹性流体；
-  2. 理想气体；
+  The Types of Equations of State are:
+  1. Linear Elastic Fluid;
+  2. Ideal Gas;
 
----------------------------- 材料 1
-材料名称
-  MaterialName = 理想气体
-状态方程类型与参数：
+---------------------------- Material 1
+Material Name
+  MaterialName = Ideal Gas
+Equation of State Types and Parameters:
   EOSType = 2
   Gamma = 1.66666666
-  MolMass = 1.0                        $气体的摩尔质量，单位（g/mol）
-运动粘性系数：
-  MotionViscos = 0.000                 $运动粘性系数，单位（m^2/s）
+  MolMass = 1.0                        $Molar Mass of Gas, Unit (g/mol)
+Motion Viscosity Coefficient:
+  MotionViscos = 0.000                 $Unit (m^2/s)
 ====================================
 
->> 格点和单元文件名（必须和本建模文件放在同一个文件夹中）
+>> Node and Element File Names (Must be in The Same Folder as This Modeling File)
 
 NodesFileName = "./data/0.05/Compute-Mesh-1-Nodes.txt"
 
 CellsFileName = "./data/0.05/Compute-Mesh-2-Cells.txt"
 
->> 计算区域边界条件（选：固壁 或 周期）
+>> Boundary Conditions of Computation Domain (Options: SolidWall, Period)
 
-TopBottomBoundaryCondition = 固壁
+TopBottomBoundaryCondition = SolidWall
 
-LeftRightBoundaryCondition = 固壁
+LeftRightBoundaryCondition = SolidWall
 
->> 重力加速度
+>> Gravitational Acceleration
 
-GravityAcceleration = 0.0           $单位（cm/us^2）
+GravityAcceleration = 0.0           $Unit (cm/us^2)
 
->> 数据输出的时间间隔和程序结束时间（us）
+>> Time Interval of Data Output and Program End Time (us)
 
 TimeIntervalForOutput = 0.001
 

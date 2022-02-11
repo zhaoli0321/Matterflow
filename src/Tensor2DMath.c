@@ -12,12 +12,7 @@
 #include "matterflow.h"
 #include "matterflow_functs.h"
 
-/// <summary>
-/// 张量相加运算
-/// </summary>
-/// <param name="t1"></param>
-/// <param name="t2"></param>
-/// <returns></returns>
+/// Tensor addition
 tensor2D Tensor2DAdd(tensor2D t1, tensor2D t2)
 {
     tensor2D t3;
@@ -31,12 +26,7 @@ tensor2D Tensor2DAdd(tensor2D t1, tensor2D t2)
     return (t3);
 }
 
-/// <summary>
-/// 张量自加运算
-/// </summary>
-/// <param name="t1"></param>
-/// <param name="t2"></param>
-/// <returns></returns>
+/// Tensor self addition
 void Tensor2DSelfAdd(tensor2D * t1, tensor2D t2)
 {
     double (*a1)[2] = t1->A;
@@ -47,12 +37,7 @@ void Tensor2DSelfAdd(tensor2D * t1, tensor2D t2)
     a1[1][1] += a2[1][1];
 }
 
-/// <summary>
-/// 张量相减运算
-/// </summary>
-/// <param name="t1"></param>
-/// <param name="t2"></param>
-/// <returns></returns>
+/// Tensor subtraction
 tensor2D Tensor2DSub(tensor2D t1, tensor2D t2)
 {
     tensor2D t3;
@@ -66,12 +51,8 @@ tensor2D Tensor2DSub(tensor2D t1, tensor2D t2)
     return (t3);
 }
 
-/// <summary>
-/// 实数与张量相加（实质上是实数乘以单位张量再与张量相加）
-/// </summary>
-/// <param name="t1"></param>
-/// <param name="t2"></param>
-/// <returns></returns>
+/// Add a real number to a tensor 
+/// (essentially multiply a real number by a unit tensor and add it to the tensor)
 tensor2D CValueAddTensor2D(double c, tensor2D t2)
 {
     tensor2D t3;
@@ -84,12 +65,8 @@ tensor2D CValueAddTensor2D(double c, tensor2D t2)
     return (t3);
 }
 
-/// <summary>
-/// 实数与张量相加（实质上是实数乘以单位张量再与张量相加）
-/// </summary>
-/// <param name="t1"></param>
-/// <param name="t2"></param>
-/// <returns></returns>
+/// Add a real number to a tensor 
+/// (essentially multiply a real number by a unit tensor and add it to the tensor)
 tensor2D Tensor2DAddCValue(tensor2D t2, double c)
 {
     tensor2D t3;
@@ -102,12 +79,8 @@ tensor2D Tensor2DAddCValue(tensor2D t2, double c)
     return (t3);
 }
 
-/// <summary>
-/// 实数与张量相加（实质上是实数乘以单位张量再与张量相加）
-/// </summary>
-/// <param name="t1"></param>
-/// <param name="c"></param>
-/// <returns></returns>
+/// Self add a real number to a tensor 
+/// (essentially multiply a real number by a unit tensor and add it to the tensor)
 void Tensor2DSelfAddCValue(tensor2D * t1, double c)
 {
 	double(*a1)[2] = (*t1).A;
@@ -115,12 +88,7 @@ void Tensor2DSelfAddCValue(tensor2D * t1, double c)
 	a1[1][1] += c;
 }
 
-/// <summary>
-/// 实数乘以张量
-/// </summary>
-/// <param name="factor"></param>
-/// <param name="tensor"></param>
-/// <returns></returns>
+/// Real multiplied by tensor
 tensor2D CValueMultTensor2D(double factor, tensor2D tensor)
 {
     tensor2D result;
@@ -132,12 +100,7 @@ tensor2D CValueMultTensor2D(double factor, tensor2D tensor)
     return (result);
 }
 
-/// <summary>
-/// 实数乘以张量
-/// </summary>
-/// <param name="factor"></param>
-/// <param name="tensor"></param>
-/// <returns></returns>
+/// Real multiplied by tensor
 tensor2D Tensor2DMultCValue(tensor2D tensor, double factor)
 {
     tensor2D result;
@@ -149,12 +112,7 @@ tensor2D Tensor2DMultCValue(tensor2D tensor, double factor)
     return (result);
 }
 
-/// <summary>
-/// 实数乘以张量
-/// </summary>
-/// <param name="factor"></param>
-/// <param name="tensor"></param>
-/// <returns></returns>
+/// Real multiplied by tensor (self)
 void Tensor2DSelfMultCValue(tensor2D * tensor, double factor)
 {
     double (*a)[2] = tensor->A;
@@ -164,12 +122,7 @@ void Tensor2DSelfMultCValue(tensor2D * tensor, double factor)
     a[1][1] *= factor;
 }
 
-/// <summary>
-/// 张量乘以矢量
-/// </summary>
-/// <param name="tensor"></param>
-/// <param name="vec"></param>
-/// <returns></returns>
+/// Tensor multiplied by vector
 vec2D Tensor2DMultVec(tensor2D tensor, vec2D vec)
 {
     vec2D result;
@@ -179,12 +132,7 @@ vec2D Tensor2DMultVec(tensor2D tensor, vec2D vec)
     return (result);
 }
 
-/// <summary>
-/// 张量乘以张量
-/// </summary>
-/// <param name="t1"></param>
-/// <param name="t2"></param>
-/// <returns></returns>
+/// Tensor multiplied by tensor
 tensor2D Tensor2DMult(tensor2D t1, tensor2D t2)
 {
     tensor2D t3;
@@ -198,10 +146,7 @@ tensor2D Tensor2DMult(tensor2D t1, tensor2D t2)
     return (t3);
 }
 
-/// <summary>
-/// 张量自乘一个系数
-/// </summary>
-/// <param name="factor"></param>
+/// The tensor multiplies itself by a coefficient
 void SelfMultiply(tensor2D * t, double factor)
 {
 	double (*A)[2] = t->A;
@@ -211,12 +156,7 @@ void SelfMultiply(tensor2D * t, double factor)
     A[1][1] *= factor;
 }
 
-/// <summary>
-/// 张量除以实数
-/// </summary>
-/// <param name="factor"></param>
-/// <param name="tensor"></param>
-/// <returns></returns>
+/// Tensor divided by real number
 tensor2D Tensor2DDivideCValue(tensor2D tensor, double factor)
 {
     tensor2D result;
@@ -228,14 +168,7 @@ tensor2D Tensor2DDivideCValue(tensor2D tensor, double factor)
     return (result);
 }
 
-/// <summary>
-/// 
-/// </summary>
-/// <param name="x2"></param>
-/// <param name="x3"></param>
-/// <param name="x2p"></param>
-/// <param name="x3p"></param>
-/// <returns></returns>
+
 tensor2D DisplaceTensor(vec2D x2, vec2D x3, vec2D x2p, vec2D x3p)
 {
     tensor2D tensor;
@@ -247,28 +180,19 @@ tensor2D DisplaceTensor(vec2D x2, vec2D x3, vec2D x2p, vec2D x3p)
     return (tensor);
 }
 
-/// <summary>
-/// 求迹平均（即，对角线之和除以对角线元素数目）
-/// </summary>
-/// <returns></returns>
+/// Traces (i.e., the sum of the diagonals elements)
 double Trace(tensor2D t)
 {
     return (t.A[0][0] + t.A[1][1]);
 }
 
-/// <summary>
-/// 求迹平均（即，对角线之和除以对角线元素数目）
-/// </summary>
-/// <returns></returns>
+/// Average of traces (i.e., the sum of the diagonals divided by the number of diagonal elements)
 double TraceAverage(tensor2D t)
 {
     return ((t.A[0][0] + t.A[1][1]) / 2.0);
 }
 
-/// <summary>
-/// 返回张量的最大值（即，max{ a[i][j] }, i,j=1,2）
-/// </summary>
-/// <returns></returns>
+/// Returns the maximum value of the tensor (i.e., max{ a[i][j] }, i,j=1,2)
 double GetTensor2DMaxValue(tensor2D t)
 {
     double maxval1 = max(t.A[0][0], t.A[0][1]);
@@ -277,10 +201,7 @@ double GetTensor2DMaxValue(tensor2D t)
     return( max(maxval1, maxval2) );
 }
 
-/// <summary>
-/// 将CValue转换为张量
-/// </summary>
-/// <returns></returns>
+/// Convert C to Tensor
 tensor2D CValueToTensor2D(double c)
 {
 	tensor2D tensor;
@@ -292,17 +213,12 @@ tensor2D CValueToTensor2D(double c)
 	return(tensor);
 }
 
-/// <summary>
-/// 将张量 t1 分解为 StrainRation + RotateRatio。
-/// 其中StrainRation为对称张量,
+/// Decompose tensor t1 into StrainRation + RotateRatio.
+/// where StrainRation is a symmetric tensor,
 ///                   ┌     ┐
 /// RotateRatio = vT *│0, -1│
 ///                   │1,  0│
 ///                   └     ┘
-/// </summary>
-/// <param name="t1"></param>
-/// <param name="Strain"></param>
-/// <param name="Rotate"></param>
 void TensorDepartion(tensor2D t, tensor2D * Strain, tensor2D * Rotate)
 {
 	double (*A)[2] = t.A;
@@ -314,14 +230,7 @@ void TensorDepartion(tensor2D t, tensor2D * Strain, tensor2D * Rotate)
     *Strain = Tensor2DSub(t, *Rotate);
 }
 
-/// <summary>
-/// 从三角形的两条边矢量和运动速度计算应变率张量
-/// </summary>
-/// <param name="x1"></param>
-/// <param name="x2"></param>
-/// <param name="v1"></param>
-/// <param name="v2"></param>
-/// <returns></returns>
+/// Calculate the strain rate tensor from the two side vectors of the triangle and the velocity of motion
 tensor2D CalcStrainRateTensor(vec2D x1, vec2D x2, vec2D v1, vec2D v2)
 {
     tensor2D displaceTensor = DisplaceTensor(x1, x2, v1, v2);
@@ -330,16 +239,7 @@ tensor2D CalcStrainRateTensor(vec2D x1, vec2D x2, vec2D v1, vec2D v2)
     return (strainRatio);
 }
 
-// vec2D Vec2DSub(vec2D v1, vec2D v2);
-// double Cross(vec2D v1, vec2D v2);
-/// <summary>
-/// 计算应变率
-/// </summary>
-/// <param name="x1"></param>
-/// <param name="x2"></param>
-/// <param name="v1"></param>
-/// <param name="v2"></param>
-/// <returns></returns>
+/// Calculate strain rate
 double CalcStrainRate(vec2D x1, vec2D x2, vec2D x3, vec2D v1, vec2D v2, vec2D v3)
 {
     double strainRate = (Cross(Vec2DSub(v2,v1), Vec2DSub(x3, x1)) + Cross(Vec2DSub(x2, x1), Vec2DSub(v3, v1)))
@@ -347,10 +247,7 @@ double CalcStrainRate(vec2D x1, vec2D x2, vec2D x3, vec2D v1, vec2D v2, vec2D v3
 	return(strainRate);
 }
 
-/// <summary>
-/// 对称张量的对角化
-/// </summary>
-/// <returns></returns>
+/// Diagonalization of symmetric tensor
 tensor2D Diagonalize(tensor2D t)
 {
 	double (*A)[2] = t.A;

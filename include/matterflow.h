@@ -82,233 +82,204 @@ typedef struct tensorDimTwo
 
 typedef struct vertex
 {
-    /// <summary>
-    /// 格点数组中的位置索引。
-    /// </summary>
+    /// Nodal index
     int Index;
-    /// <summary>
-    /// 标记格点是否已是“失效”格点。
-    /// 用于导入Ansys网格时做标记，留待之后再删除。
-    /// </summary>
+
+    /// Marks if a node is "dead" (for future use)
     bool IsDead;
-    /// <summary>
-    /// 用于标记格点是否处于上下底边
-    /// </summary>
+
+    /// Mark whether the node is on the up and down edges
     bool IsOnUpDownBoundary;
     bool IsOnUpBoundary;    // zhaoli
     bool IsOnDownBoundary;  // zhaoli
-    /// <summary>
-    /// 用于标记格点是否处于左右边界（网格镜像翻倍后，轴心处的格点也被定义为左右边界格点）
-    /// </summary>
+
+    /// Mark whether the node is on the left and right edges
     bool IsOnLeftRightBoundary;
     bool IsOnLeftBoundary;  // zhaoli
     bool IsOnRightBoundary; // zhaoli
-    /// <summary>
-    /// 格点质量
-    /// </summary>
+
+    /// Nodal mass
     double Mass;
-    /// <summary>
-    /// 格点速度
-    /// </summary>
+
+    /// Nodal velocity
     vec2D Velocity;
-    /// <summary>
-    /// 格点位置
-    /// </summary>
+
+    /// Nodal positon
     vec2D Pos;
-    ////////////////////////////////// 临时辅助变量
-    /// <summary>
-    /// 格点受力
-    /// </summary>
+
+    ////////////////////////////////// Auxiliary variables
+    /// Nodal force
     vec2D Force;
-    /// <summary>
-    /// 格点受力中用于物质流动计算的部分
-    /// </summary>
+
+    /// Matter flow force (part of the nodal force)
     vec2D ForceForMatterFlow;
-    /// <summary>
-    /// 一个时间步的位移。
-    /// 用于辅助计算内能增量。
-    /// </summary>
+
+    /// displacement of one time step (Used to assist in calculating the internal energy increment.)
 	vec2D DeltPos;
 } *Vertex;
 
 
 typedef struct triangle
 {
-    /// <summary>
-    /// 三角形标号，用于调试程序。
-    /// </summary>
+    /// Triangle index
     int Index;
-    /// <summary>
-    /// 标记三角形是否已是“失效”三角形。
-    /// 用于Merge网格重分时暂时将该删除的三角形做标记，留待之后再删除。
-    /// </summary>
+
+    /// Marks if a triangle cell is "dead" (for future use)
     bool IsDead;
-    /// <summary>
-    /// 三角形的三个顶点（约定按逆时针方向排布）
-    /// </summary>
+    
+    /// The three vertices of the triangle (conventionally arranged in a counterclockwise direction)
     Vertex Vertices[3];
-    /// <summary>
-    /// 三个邻域三角形
-    /// </summary>
+
+    /// Three neighborhood triangles of the triangle
     struct triangle * NeighbourTrgs[3];
-    /// <summary>
-    /// 与每条边对应的物质流出加速度
-    /// </summary>
+
+    /// Matter flow acceleration corresponding to each edge for the triangle
     double FlowAcc[3];
-    /// <summary>
-    /// 与每条边对应的补偿速度（物质流出速度）
-    /// </summary>
+
+    /// Matter flow velocity corresponding to each edge for the triangle
     double FlowVelocity[3];
-    /// <summary>
-    /// 三角形的质量
-    /// </summary>
+
+    /// Triangle mass
     double Mass;
-    /// <summary>
-    /// 材料号（在材料列表中的位置——不是用户输入的材料编号）
-    /// </summary>
+
+    /// Material ID of the triangle
     int MaterialId;
-    /// <summary>
-    /// 密度（中间辅助变量）
-    /// </summary>
+
+    /// Density of the triangle
     double Density;
-    /// <summary>
-    /// 压强（中间辅助变量）
-    /// </summary>
+
+    /// Pressure of the triangle
 	double Pressure;
-    /// <summary>
-    /// 单元中的总模量确定的声速。（用于确定时间步长、物质流动法中确定衰减系数）
-    /// </summary>
+
+    /// Sound velocity of the triangle
     double SoundVelocitySum;
-    /// <summary>
-    /// 动态人工粘性系数（中间辅助变量）
-    /// </summary>
+
+    /// Viscosity coefficient
     double ViscCoeff;
-    /// <summary>
-    /// 粘性应力的 RZ 分量（中间辅助变量）
-    /// </summary>
-    /// 标量粘性应力  
+
+    /// Scalar viscous stress
     double Viscos;  
-    /// <summary>
-    /// 流体内应力之和。包括：压强、弹性应力、粘性应力。但不包含磁场应力张量
-    /// （中间辅助变量）
-    /// </summary>
+
+    /// The sum of internal stresses in the fluid. 
+    /// Including: pressure, elastic stress and viscous stress. But it does not include stress tensor in the magnetic field.
 	tensor2D TotalFluidStress;
-    /// <summary>
-    /// 三角形面积（中间辅助变量）
-    /// </summary>
+
+    /// Area of the triangle
     double Area;
-    /// <summary>
-    /// 该三角单元三条边对应的三条高（中间辅助变量）
-    /// </summary>
+
+    /// Heights of the triangle
     double Heights[3];
-    /// <summary>
-    /// 该三角单元的最小高（中间辅助变量）
-    /// </summary>
+
+    /// Minimum height of the triangle
     double MinHeight;
-    /// <summary>
-    /// 格点坐标（中间辅助变量）
-    /// </summary>
+
+    /// Three vertex coordinates (auxiliary variable, for periodic meshes)
 	vec2D CycledPoses[3];
-    ////////////////////////////////////////////////////// 物质单元专用变量
-    /// <summary>
-    /// 单元中的流体内能
-    /// </summary>
+
+    /// Internal energy of the triangle
     double InternalEnergy;
-    /// <summary>
-    /// 温度（中间辅助变量）
-    /// </summary>
+
+    /// Temperature of the triangle
     double Temperature;
 } *Triangle;
 
 
 typedef enum boxBoundaryCondition
 {
-	BoxBoundaryCondition_Wall,
-	BoxBoundaryCondition_Cycle
+	BoxBoundaryCondition_Wall, // Solid Wall
+	BoxBoundaryCondition_Cycle // Periodic
 } BoxBoundaryCondition;
+
 
 typedef struct meshObject
 {
-    /////////////////////////////////////////////////// 网格
-    /// <summary>
-    /// 格点集合
-    /// </summary>
+    /////////////////////////////////////////////////// Mesh
+    /// The set of nodes
 	struct vertex * Vertices;
+
+    /// The number of nodes
     int VertsArrLen;
-    /// <summary>
-    /// 失效格点集合
-    /// </summary>
+
+    /// The set of dead nodes
 	int * DeadVertIdsArr;
+
+    /// The number of dead nodes
     int DeadVertIdsArrLen;
-    /// <summary>
-    /// 三角形集合
-    /// </summary>
+    
+    /// The set of triangles
 	struct triangle * Trgs;
+
+    /// The number of triangles
     int TrgsArrLen;
-    /// <summary>
-    /// 失效三角形集合
-    /// </summary>
+
+    /// The number of triangles
 	int * DeadTrgIdsArr;
+
+    /// The number of dead triangles
     int DeadTrgIdsArrLen;
-    /////////////////////////////////////////////////// 计算区域边界格点条件（对于zr程序，左右必须是固壁边界条件）
+
+    /////////////////////////////////////////////////// Boundary conditions
     BoxBoundaryCondition TopBottomBoundaryCondition;
 	BoxBoundaryCondition LeftRightBoundaryCondition;
-    /////////////////////////////////////////////////// 全局条件
-    /// <summary>
-    /// 重力加速度
-    /// </summary>
+    
+    /// Gravitational acceleration
     double GravityFactor;
-    //////////////////////////////// 计算区域大小
+
+    /// Calculate domain size
     double Width;
     double Height;
 } *MeshObject;
+
 
 typedef enum eOSTypeEnum { 
 	EOSTypeEnum_Linear, 
 	EOSTypeEnum_IdealGas
 } EOSTypeEnum;
 
+
 typedef struct materialParameters
 {
-    //////////////////////////////////////////////////////////////////////////////////////////// 材料属性
-    int MaterialNumber;//对应用户输入文件中的材料号。
-    //////////////////////////////////////////////////////////// 材料名称
+    //////////////////////////////////////////////////////////////////////////////////////////// Material properties
+    int MaterialNumber; // Corresponds to the material number in the user input file.
+    //////////////////////////////////////////////////////////// Material name
     char MaterialName[101];
-    //////////////////////////////////////////////////////////// EOS 参数
-    EOSTypeEnum EOSType;     //材料类型
-    /// 线弹性流体参数
-    double NormalDensity;    //室温室压密度(共享TableEOS中的NormalDensity变量)
-    double Kai;              //体模量
-    double SpecificHeat;     //比热
-    /// 多方气体参数
-    double Gamma;            //多方指数
-    double MolMass;          //摩尔质量
-    //////////////////////////////////////////////////////////// 粘性参数
+    //////////////////////////////////////////////////////////// EOS parameters
+    EOSTypeEnum EOSType;     // material type
+    /// Linear elastic fluid parameters
+    double NormalDensity;    // room temperature/pressure density
+    double Kai;              // bulk modulus
+    double SpecificHeat;     // specific heat
+    /// Polytropic  gas parameters
+    double Gamma;            // polytropic index
+    double MolMass;          // molar mass
+    //////////////////////////////////////////////////////////// Viscosity parameter
     double MotionViscos;
 } *Material;
 
+
 typedef struct nodeFromFile
 {
-	/// 格点坐标
+	/// Node coordinates
 	vec2D Pos;
-	/// 格点速度
+	/// Node velocity
 	vec2D Vel;
-	/// 格点的邻接三角形
+	/// Adjacent triangles of the nodes
 	int TrgIDs[MAX_NB_TRGS];
 	int TrgIDsLen;
 } *NodeFromFile;
 
+
 typedef struct triangleFromFile
 {
-	/// 材料号
+	/// Material ID
 	int MaterialId;
-    /// 压强
+    /// Pressure
     double Pressure;
-    /// 温度
+    /// Temperature
     double Temperature;
-	/// 三角形的邻接格点
+	/// Three nodes of a triangle
 	int NodeIDs[3];
-	/// 三角形的邻接三角形
+	/// Three neighborhood triangles of the triangle
 	int NeighbourTrgIDs[3];
 } *TriangleFromFile;
 

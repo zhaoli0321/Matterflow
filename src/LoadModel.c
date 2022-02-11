@@ -13,10 +13,7 @@
 #include "matterflow_functs.h"
 
 
-/// <summary>
-/// 读取 Ansys 网格文件名，包括格点文件名和单元文件名
-/// </summary>
-/// <param name="sr"></param>
+/// Read grid filenames, including grid point filenames and cell filenames
 void LoadMeshFileNames(FILE * fr, char nodesFileName[], char cellsFileName[])
 {
 	char line[1001], words[3][1001];
@@ -29,7 +26,7 @@ void LoadMeshFileNames(FILE * fr, char nodesFileName[], char cellsFileName[])
 		fgets(line, 1000, fr);
 		if(feof(fr))
         {
-            ERR("读取LoadMeshFileNames出错：文件格式不符合要求\n");
+            ERR("Error reading LoadMeshFileNames: The file format does not meet the requirements!\n");
         }
         /////////////////////////////////////////
 		words[1][0] = '\0';        
@@ -71,10 +68,8 @@ void LoadMeshFileNames(FILE * fr, char nodesFileName[], char cellsFileName[])
 		}
     }
 }
-/// <summary>
-/// 读取计算区域边界条件
-/// </summary>
-/// <param name="sr"></param>
+
+/// Read Computational Domain Boundary Conditions
 void LoadBoxBoundaryCondition(FILE * fr, BoxBoundaryCondition * topBottomCondition, BoxBoundaryCondition * leftRightCondition)
 {
 	char line[1001], words[3][101];
@@ -82,9 +77,9 @@ void LoadBoxBoundaryCondition(FILE * fr, BoxBoundaryCondition * topBottomConditi
 	(*topBottomCondition) = BoxBoundaryCondition_Wall;
 	(*leftRightCondition) = BoxBoundaryCondition_Wall;
 	////////////////////////////////////////////////////////////////////
-	if(SearchNextInFile(fr, ">> 计算区域边界条件") == false)
+	if(SearchNextInFile(fr, ">> Boundary Conditions of Computation Domain") == false)
 	{
-		ERR("没有找到“>> 计算区域边界条件”");
+		ERR("Does not find \">> Boundary Conditions of Computation Domain.\"");
 	}
 	////////////////////////////////////////////////////////////////////
     while (true)
@@ -92,7 +87,7 @@ void LoadBoxBoundaryCondition(FILE * fr, BoxBoundaryCondition * topBottomConditi
         fgets(line, 1000, fr);
 		if(feof(fr))
         {
-            ERR("读取“计算区域边界条件”出错：文件格式不符合要求\n");
+            ERR("Error reading \"Boundary Conditions of Computation Domain\": The file format does not meet the requirements!\n");
         }
         /////////////////////////////////////////
         words[1][0] = '\0';
@@ -101,52 +96,51 @@ void LoadBoxBoundaryCondition(FILE * fr, BoxBoundaryCondition * topBottomConditi
 		{
 			if (strcmp(words[0], "TopBottomBoundaryCondition") == 0)
 			{
-				if (strcmp(words[2], "固壁") == 0)
+				if (strcmp(words[2], "SolidWall") == 0)
 				{
 					(*topBottomCondition) = BoxBoundaryCondition_Wall;
 				}
-				else if (strcmp(words[2], "周期") == 0)
+				else if (strcmp(words[2], "Period") == 0)
 				{
 					(*topBottomCondition) = BoxBoundaryCondition_Cycle;
+					ERR("Periodic boundary conditions are currently not implemented!!!\n");
 				}
 				else
 				{
-					ERR("读取“计算区域边界条件”出错：文件格式不符合要求\n");
+					ERR("Error reading \"Boundary Conditions of Computation Domain\": The file format does not meet the requirements!\n");
 				}
 			}
 			else if (strcmp(words[0], "LeftRightBoundaryCondition") == 0)
 			{
-				if (strcmp(words[2], "固壁") == 0)
+				if (strcmp(words[2], "SolidWall") == 0)
 				{
 					(*leftRightCondition) = BoxBoundaryCondition_Wall;
 				}
-				else if (strcmp(words[2], "周期") == 0)
+				else if (strcmp(words[2], "Period") == 0)
 				{
 					(*leftRightCondition) = BoxBoundaryCondition_Cycle;
+					ERR("Periodic boundary conditions are currently not implemented!!!\n");
 				}
 				else
 				{
-					ERR("读取“计算区域边界条件”出错：文件格式不符合要求\n");
+					ERR("Error reading \"Boundary Conditions of Computation Domain\": The file format does not meet the requirements!\n");
 				}
 				break;
 			}
 		}
     }
 }
-/// <summary>
-/// 读取重力加速度
-/// </summary>
-/// <param name="?"></param>
-/// <param name="meshObject"></param>
+
+/// Read Gravitational Acceleration
 double ReadGravityAcceleration(FILE * fr)
 {
 	char line[1001], words[3][101];
 	////////////////////////////////////////////////////////////////////
     double gravityAcc = 0.0;
 	////////////////////////////////////////////////////////////////////
-	if(SearchNextInFile(fr, ">> 重力加速度") == false)
+	if(SearchNextInFile(fr, ">> Gravitational Acceleration") == false)
 	{
-		ERR("没有找到“>> 重力加速度”");
+		ERR("Does not find \">> Gravitational Acceleration\"");
 	}
 	////////////////////////////////////////////////////////////////////
     while (true)
@@ -154,7 +148,7 @@ double ReadGravityAcceleration(FILE * fr)
         fgets(line, 1000, fr);
 		if(feof(fr))
         {
-            ERR("读取“重力加速度”出错：文件格式不符合要求\n");
+			ERR("Error reading \"Gravitational Acceleration\": The file format does not meet the requirements!\n");
         }
         /////////////////////////////////////////
         words[1][0] = '\0';
@@ -168,10 +162,7 @@ double ReadGravityAcceleration(FILE * fr)
     return (gravityAcc);
 }
 
-/// <summary>
-/// 读取 数据输出的时间间隔 和 程序结束时间
-/// </summary>
-/// <param name="sr"></param>
+/// Read Time Interval of Data Output and Program End Time
 void LoadTimeInterval(FILE * fr, double * timeInterval, double * timeEnd)
 {
 	char line[1001], words[3][101];
@@ -179,16 +170,16 @@ void LoadTimeInterval(FILE * fr, double * timeInterval, double * timeEnd)
     (*timeInterval) = 0.0;
     (*timeEnd) = 0.0;
 	////////////////////////////////////////////////////////////////////
-	if(SearchNextInFile(fr, ">> 数据输出的时间间隔") == false)
+	if(SearchNextInFile(fr, ">> Time Interval of Data Output and Program End Time") == false)
 	{
-		ERR("没有找到“>> 数据输出的时间间隔”");
+		ERR("Does not find \">> Time Interval of Data Output and Program End Time\"");
 	}
 	////////////////////////////////////////////////////////////////////
     while (true)
     {
 		if(feof(fr))
         {
-            ERR("读取“数据输出的时间间隔”出错：文件格式不符合要求\n");
+            ERR("Error reading \"Time Interval of Data Output and Program End Time\": The file format does not meet the requirements!\n");
         }
         fgets(line, 1000, fr);
         /////////////////////////////////////////
@@ -209,29 +200,25 @@ void LoadTimeInterval(FILE * fr, double * timeInterval, double * timeEnd)
     }
 }
 
-/// <summary>
-/// 从输入文件 modelFile 读取计算模型。
-/// </summary>
-/// <param name="modelFile">建模文件</param>
-/// <returns></returns>
+/// Read the computational model from the input file modelFile.
 void MeshObjectFromLoadModel(char * modelFile)
 {
 	FILE * fr;
     char nodesFileName[101];
     char cellsFileName[101];
-    ////////////////////////////////////////////////////////// 1)打开文件
+    // 1) Open a file
     fr = MyOpenFile(modelFile, "r");
-    ////////////////////////////////////////////////////////// 2) 读取材料列表
+    // 2) Read the material list
     LoadMaterialListFromFile(fr);
-    ////////////////////////////////////////////////////////// 3) 读取网格建模
+    // 3) Read mesh
     LoadMeshFileNames(fr, nodesFileName, cellsFileName);
     SetMeshFromMeshFiles(nodesFileName, cellsFileName);
-    //////////////////////////////////////////////////////////// 4) 读取计算区域边界条件、重力加速度
+    // 4) Read calculation area boundary conditions, gravitational acceleration
     LoadBoxBoundaryCondition(fr, &MeshObj.TopBottomBoundaryCondition, &MeshObj.LeftRightBoundaryCondition);
     MeshObj.GravityFactor = ReadGravityAcceleration(fr);
-    //////////////////////////////////////////////////////////// 5) 重设所有因变量
+    // 5) Set all dependent variables
     SetAllDependentVariablesOfTrgs();
-    ////////////////////////////////////////////////////////////    趁此机会根据初始时刻的最大物质声速设定空腔的模量（不采用空腔模量动态调整的做法了）20181029
+    // 6) Set the modulus of the cavity according to the maximum sound velocity at the initial moment
 	{
 		double maxSoundVelocity = 0.0;
 		int i;
@@ -247,8 +234,8 @@ void MeshObjectFromLoadModel(char * modelFile)
 		}
 		MatParasList[0].Kai = MatParasList[0].NormalDensity * maxSoundVelocity * maxSoundVelocity;
 	}
-    //////////////////////////////////////////////////////////// 6) 读取数据输出的时间间隔
+    // 7) Time interval for reading data output
     LoadTimeInterval(fr, &TimeInterval, &TimeEnd);
-    
+    // 8) Close the file
     fclose(fr);
 }
