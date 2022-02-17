@@ -126,8 +126,8 @@ void SetParameter(int argc, char *argv[])
 void SetInitialOrDefaultValueOfGlobals()
 {
 	// Node array and triangle array initialization
-	CreateVerticesArray(&MeshObj.Vertices, &MeshObj.DeadVertIdsArr);
-	CreateTrgsArray(&MeshObj.Trgs, &MeshObj.DeadTrgIdsArr);
+	CreateVerticesArray(&MeshObj.Vertices);
+	CreateTrgsArray(&MeshObj.Trgs);
 	//////////////////////////////////////////// Physical Constants
 	/// Gas universal constant
 	ROfGas = 8.3149 * 1e-5; // 8.3149*J.mol^-1.k^-1
@@ -172,28 +172,24 @@ void WriteOutputData()
 	for (i = 0; i < MeshObj.TrgsArrLen; i++)
 	{
 		Triangle trg = &MeshObj.Trgs[i];
-		if (trg->IsDead) continue;
 		///////////////////////////////////////
 		totMass += trg->Mass;
 	}
 	for (i = 0; i < MeshObj.VertsArrLen; i++)
 	{
 		Vertex vert = &MeshObj.Vertices[i];
-		if (vert->IsDead) continue;
 		//////////////////////////////
 		totMomentumX += vert->Mass * vert->Velocity.X;
 	}
 	for (i = 0; i < MeshObj.VertsArrLen; i++)
 	{
 		Vertex vert = &MeshObj.Vertices[i];
-		if (vert->IsDead) continue;
 		//////////////////////////////
 		totMomentumY += vert->Mass * vert->Velocity.Y;
 	}
 	for (i = 0; i < MeshObj.TrgsArrLen; i++)
 	{
 		Triangle trg = &MeshObj.Trgs[i];
-		if (trg->IsDead) continue;
 		//////////////////////////////
 		if (trg->MaterialId > 0)
 		{
@@ -203,7 +199,6 @@ void WriteOutputData()
 	for (i = 0; i < MeshObj.VertsArrLen; i++)
 	{
 		Vertex vert = &MeshObj.Vertices[i];
-		if (vert->IsDead) continue;
 		//////////////////////////////
 		totEnergy += 0.5 * vert->Mass * CalcLengthSquar(vert->Velocity);
 		totEnergy += vert->Mass * vert->Pos.Y * MeshObj.GravityFactor; // add gravitational potential energy

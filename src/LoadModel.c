@@ -225,7 +225,6 @@ void MeshObjectFromLoadModel(char * modelFile)
 		for (i = 0; i <MeshObj.TrgsArrLen; i++)
 		{
 			Triangle trg =&MeshObj.Trgs[i];
-			if (trg->IsDead) continue;
 			//////////////////////////////
 			if (trg->SoundVelocitySum > maxSoundVelocity)
 			{

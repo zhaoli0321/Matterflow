@@ -317,7 +317,6 @@ void ConvertModelMeshToStandard(struct nodeFromFile nodesFromFile[], int totNode
     for (i = 0; i < totTrgs; i++)
     {
         Triangle trg = &trgs[i];
-        if (trg->IsDead) continue;
         //////////////////////////////
 		{
 			double oneThirdTrgMass = 1 / 3.0 * trg->Mass;
@@ -343,7 +342,6 @@ void SetUpDownLeftRightBoundaryVertices(struct vertex vertices[], int vertsArrLe
         for (i = 0; i < vertsArrLen; i++ )
         {
             Vertex vert = &vertices[i];
-            if (vert->IsDead) continue;
             //////////////////////////
 			{
 				double posX = vert->Pos.X;
@@ -363,7 +361,6 @@ void SetUpDownLeftRightBoundaryVertices(struct vertex vertices[], int vertsArrLe
     for (i = 0; i < vertsArrLen; i++)
     {
         Vertex vert = &vertices[i];
-        if (vert->IsDead) continue;
         //////////////////////////
         if (fabs(vert->Pos.X - minX) < tinyLength) vert->IsOnLeftRightBoundary = true;       
         /////

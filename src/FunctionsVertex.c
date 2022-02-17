@@ -13,10 +13,9 @@
 #include "matterflow_functs.h"
 
 /// When the entire full array of vertices is created, the index is initialized and does not need to be changed later
-void CreateVerticesArray(struct vertex * * vertsArrOut, int * * deadVertIdsArrOut)
+void CreateVerticesArray(struct vertex * * vertsArrOut)
 {
 	struct vertex * vertsArr = (struct vertex *)calloc(MAX_VERTS, sizeof(struct vertex));
-	int * deadVertIdsArr = (int *)malloc(sizeof(int)*MAX_VERTS);
 	int i;
 	for (i = 0; i < MAX_VERTS; i++)
 	{
@@ -24,14 +23,11 @@ void CreateVerticesArray(struct vertex * * vertsArrOut, int * * deadVertIdsArrOu
 		//MakeLockTagString(i, 10, vertsArr[i].LockTag);
 	}
 	(*vertsArrOut) = vertsArr;
-	(*deadVertIdsArrOut) = deadVertIdsArr;
 }
 
 /// Clear vertex struct
 void ClearVertex(Vertex vert)
-{
-    vert->IsDead = false;
-    
+{   
 	vert->IsOnUpDownBoundary 	= false;
     vert->IsOnUpBoundary 		= false;
     vert->IsOnDownBoundary 		= false;
@@ -59,10 +55,3 @@ bool VertexArrayContains(Vertex verts[], int vertsLen, Vertex ele)
 	return(false);
 }
 
-
-/// Set dead node
-void SetDeadVertex(Vertex vert)
-{
-	vert->IsDead = true; // set dead flag
-	MeshObj.DeadVertIdsArr[MeshObj.DeadVertIdsArrLen++] = vert->Index;
-}

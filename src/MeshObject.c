@@ -123,7 +123,6 @@ void SetGravity()
 	for (k = 0; k < VertsArrLen; k++)
 	{
 		vert = &Vertices[k];
-		if (vert->IsDead) continue;
 		//////////////////////////////////////
 		vert->Force = MakeVec2D(0, -MeshObj.GravityFactor * vert->Mass);
 		vert->ForceForMatterFlow = ZeroVec2D;
@@ -148,7 +147,6 @@ void CalculateVertexForce()
 	for (k = 0; k < TrgsArrLen; k++)
 	{
 		trg = &Trgs[k];
-		if (trg->IsDead) continue;
 		//////////////////////////////
 		if (trg->MaterialId < 0) continue;
 		///////////////////////////////////////////////////////////////////////////////////////////////// If it is a cell of matter, include the magnetic pressure
@@ -220,7 +218,6 @@ void VelocityPosEdgeCondition()
 	for (k = 0; k < VertsArrLen; k++)
 	{
 		vert = &Vertices[k];
-		if (vert->IsDead) continue;
 		/////////// If the up/bottom edge is a solid wall boundary condition
 		if (vert->IsOnUpDownBoundary && MeshObj.TopBottomBoundaryCondition == BoxBoundaryCondition_Wall)
 		{
@@ -244,7 +241,6 @@ void VelocityPosEdgeCondition()
 	for (k = 0; k < TrgsArrLen; k++)
 	{
 		trg = &Trgs[k];
-		if (trg->IsDead) continue;
 		//////////////////////////////
 		if (trg->MaterialId < 0)
 		{
@@ -271,7 +267,6 @@ void ForceEdgeCondition()
 	for (k = 0; k < VertsArrLen; k++)
 	{
 		vert = &Vertices[k];
-		if (vert->IsDead) continue;
 		///////////// The longitudinal force of the bottom node is zero
 		if (vert->IsOnUpDownBoundary && MeshObj.TopBottomBoundaryCondition == BoxBoundaryCondition_Wall)
 		{
@@ -293,7 +288,6 @@ void ForceEdgeCondition()
 	for (k = 0; k < TrgsArrLen; k++)
 	{
 		trg = &Trgs[k];
-		if (trg->IsDead) continue;
 		//////////////////////////////
 		if (trg->MaterialId < 0)
 		{
@@ -320,7 +314,6 @@ void DynamicEvolve(double deltT)
 	for (k = 0; k < VertsArrLen; k++)
 	{
 		vert = &Vertices[k];
-		if (vert->IsDead) continue;
 		//////////////////////////////////////
 		{
 			deltVelocity = Vec2DMultCValue(vert->Force, 1 / vert->Mass * deltT);
@@ -344,7 +337,6 @@ void DynamicEvolve(double deltT)
 	for (k = 0; k < TrgsArrLen; k++)
 	{
 		trg = &Trgs[k];
-		if (trg->IsDead) continue;
 		//////////////////////////////
 		if (trg->MaterialId > 0)
 		{
@@ -408,7 +400,6 @@ void CalculateMatterFlowAcc()
 	for (k = 0; k < TrgsArrLen; k++)
 	{
 		trg = &Trgs[k];
-		if (trg->IsDead) continue;
 		//////////////////////////////
 		if (trg->MaterialId <= 0) continue; // Vacuum and wall cells do not use matter flow method
 		//////////////////////////////////////////// 
@@ -498,7 +489,6 @@ void MatterFlowEvolve(double deltT)
 	for (k = 0; k < TrgsArrLen; k++)
 	{
 		trg = &Trgs[k];
-		if (trg->IsDead) continue;
 		//////////////////////////////
 		if (trg->MaterialId <= 0) continue; // Vacuum and wall cells do not use matter flow method
 		//////////////////////////////////////////// 
@@ -808,7 +798,6 @@ void SetAllDependentVariablesOfTrgs()
 	for (i = 0; i < TrgsArrLen; i++)
 	{
 		trg = &Trgs[i];
-		if (trg->IsDead) continue;
 		//////////////////////////////
 		SetAllDependentVariables(trg);
 	}
@@ -838,8 +827,6 @@ double DetermineDeltT()
 		trg = &Trgs[k];
 		deltTMinOfThisTrg = 1e20;
 		deltTNameIDOfThisTrg = -1;
-		//////////////////////////////
-		if (trg->IsDead) continue;
 		//////////////////////////////
 		if (trg->MaterialId <= 0) continue;
 		/////////////////////////////////////////////////////

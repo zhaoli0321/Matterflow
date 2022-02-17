@@ -14,17 +14,15 @@
 
 
 /// When the entire full array of triangle is created, the index is initialized and does not need to be changed later
-void CreateTrgsArray(struct triangle * * trgsArrOut, int * * deadTrgIdsArrOut)
+void CreateTrgsArray(struct triangle * * trgsArrOut)
 {
 	struct triangle * trgsArr = (struct triangle *)calloc(MAX_VERTS * 2, sizeof(struct triangle));
-	int * deadTrgIdsArr = (int *)malloc(sizeof(int)*MAX_VERTS * 2);
 	int i;
 	for (i = 0; i < MAX_VERTS * 2; i++)
 	{
 		trgsArr[i].Index = i;
 	}
 	(*trgsArrOut) = trgsArr;
-	(*deadTrgIdsArrOut) = deadTrgIdsArr;
 }
 
 
@@ -66,9 +64,3 @@ void SetTrgVertsAndNbs(Triangle trg, Vertex vert1, Vertex vert2, Vertex vert3, T
     NeighbourTrgs[2] = trg3;
 }
 
-/// Set dead triangle
-void SetDeadTriangle(Triangle trg)
-{
-	trg->IsDead = true; // set dead flag
-	MeshObj.DeadTrgIdsArr[MeshObj.DeadTrgIdsArrLen++] = trg->Index;
-}

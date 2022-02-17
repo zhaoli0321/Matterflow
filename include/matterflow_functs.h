@@ -51,9 +51,7 @@ tensor2D CalcViscosStressTensor(int matId, tensor2D strainRatioTensor, double de
 
 /*-------- In file: FunctionsTriangle.c --------*/
 
-void ClearTriangle(Triangle trg);
-
-void CopyMainContentsTo(Triangle trgSource, Triangle trgTarget);
+void CreateTrgsArray(struct triangle * * trgsArrOut);
 
 void SetTrgVertices(Vertex verts[3], Vertex vert0, Vertex vert1, Vertex vert2);
 
@@ -65,6 +63,8 @@ void SetTrgVertsAndNbs(Triangle trg, Vertex vert1, Vertex vert2, Vertex vert3, T
 
 
 /*-------- In file: FunctionsVertex.c --------*/
+
+void CreateVerticesArray(struct vertex * * vertsArrOut);
 
 void ClearVertex(Vertex vert);
 
@@ -83,8 +83,6 @@ void SetTriangleFromFile(TriangleFromFile trg, int node1, int node2, int node3);
 void LoadNodes(char nodeListFile[], struct nodeFromFile nodesArray[], int * nodesArrLenOut);
 
 void LoadCells(char cellListFile[], struct triangleFromFile trgsArray[], int * trgsArrLenOut);
-
-void  MakeCycleTrgsOnEdge(struct nodeFromFile nodes[], int totNodes, struct triangleFromFile trgs[], int totTrgs);
 
 void ConstructTrgNeighbours(struct nodeFromFile nodes[], int nodesLen, struct triangleFromFile trgs[], int trgsLen);
 
@@ -116,19 +114,11 @@ void ERR(char * prnt);
 
 double GetWallTime(clock_t start_time, clock_t end_time);
 
-vec2D CalculateMoveMomentumMatterFlow2(double a, vec2D b, double c);
+double func(vec2D x, double a, vec2D b, double c);
 
 vec2D CalculateMoveMomentumMatterFlow1(double a, vec2D b, double c, vec2D lambda);
 
-double func(vec2D x, double a, vec2D b, double c);
-
-void CreateVerticesArray(struct vertex * * vertsArrOut, int * * deadVertIdsArrOut);
-
-void CreateTrgsArray(struct triangle * * trgsArrOut, int * * deadTrgIdsArrOut);
-
-void SetDeadVertex(Vertex vert);
-
-void SetDeadTriangle(Triangle trg);
+vec2D CalculateMoveMomentumMatterFlow2(double a, vec2D b, double c);
 
 void SetGravity();
 
@@ -141,8 +131,6 @@ void ForceEdgeCondition();
 void DynamicEvolve(double deltT);
 
 void CalculateMatterFlowAcc();
-
-void MatterFlowEvolve(double deltT);
 
 void MatterFlowEvolve(double deltT);
 
@@ -159,13 +147,13 @@ double DetermineDeltT();
 
 void CreateDirectory(char *dirName);
 
-void PrintTime();
+void PrintNSInformation();
 
 void PrintInfo();
 
 void PrintMeshScale();
 
-void WriteTecPlotCellDataFromNormalGrid();
+void WriteTecPlot();
 
 double PressureAnalyticalSolution_TaylorGreen(double xc, double yc);
 

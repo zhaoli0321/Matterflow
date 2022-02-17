@@ -58,7 +58,6 @@ void PrintMeshScale()
 	for (k = 0; k < MeshObj.TrgsArrLen; k++)
 	{
 		trg = &MeshObj.Trgs[k];
-		if (trg->IsDead) continue;
 		///////
 		for (i = 0; i < 3; i++)
 		{

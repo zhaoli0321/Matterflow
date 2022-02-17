@@ -85,18 +85,15 @@ typedef struct vertex
     /// Nodal index
     int Index;
 
-    /// Marks if a node is "dead" (for future use)
-    bool IsDead;
-
     /// Mark whether the node is on the up and down edges
     bool IsOnUpDownBoundary;
-    bool IsOnUpBoundary;    // zhaoli
-    bool IsOnDownBoundary;  // zhaoli
+    bool IsOnUpBoundary;    
+    bool IsOnDownBoundary;  
 
     /// Mark whether the node is on the left and right edges
     bool IsOnLeftRightBoundary;
-    bool IsOnLeftBoundary;  // zhaoli
-    bool IsOnRightBoundary; // zhaoli
+    bool IsOnLeftBoundary;  
+    bool IsOnRightBoundary; 
 
     /// Nodal mass
     double Mass;
@@ -124,9 +121,6 @@ typedef struct triangle
     /// Triangle index
     int Index;
 
-    /// Marks if a triangle cell is "dead" (for future use)
-    bool IsDead;
-    
     /// The three vertices of the triangle (conventionally arranged in a counterclockwise direction)
     Vertex Vertices[3];
 
@@ -200,23 +194,11 @@ typedef struct meshObject
     /// The number of nodes
     int VertsArrLen;
 
-    /// The set of dead nodes
-	int * DeadVertIdsArr;
-
-    /// The number of dead nodes
-    int DeadVertIdsArrLen;
-    
     /// The set of triangles
 	struct triangle * Trgs;
 
     /// The number of triangles
     int TrgsArrLen;
-
-    /// The number of triangles
-	int * DeadTrgIdsArr;
-
-    /// The number of dead triangles
-    int DeadTrgIdsArrLen;
 
     /////////////////////////////////////////////////// Boundary conditions
     BoxBoundaryCondition TopBottomBoundaryCondition;
