@@ -53,8 +53,8 @@ void main(int argc, char *argv[])
 
 	if(TaylorGreen){	
 		TaylorGreenOutPutBottomEdgePhysics();
-		VolumeWeightedL1Norm();
-		TaylorGreenL2Norm();
+	// 	VolumeWeightedL1Norm();
+	// 	TaylorGreenL2Norm();
 	}	
 }
 
@@ -62,18 +62,14 @@ void main(int argc, char *argv[])
 void PrintHelpInfo()
 {
 	printf("\n");
-	printf("-f  : Model file.\n");
-	printf("-mf : Is there a matter flow method (default %d), 1: yes, 0: no.\n", HAVE_MF);
-	printf("-mfm: Types of matter flow methods (default %d).\n", MF_Method);
-	printf("      0: Momentum at the midpoint, i.e., Delta P=（v1+v2）M/3;\n");
-	printf("      1: Midpoint + Delta P (i.e., optimization problem);\n");
-	printf("      2: Delta P (i.e., optimization problem).\n");
-	printf("-tg : Is there Taylor-Green vortex problem (default %d), 1: yes, 0: no.\n", TaylorGreen);
-	printf("-k  : Times of viscosity coefficient (default %.4f).\n", ViscCoeffTimes);
-	printf("-cs : C_safe, time-step factor (default %.4f).\n", timeStepSafeFactor);
-	printf("-bn : How many pictures to output (default %d).\n", TotBitmapOutputs);
+	printf("-f : Model file.\n");
+	printf("-mf: Is there the matter flow method (default %d), 1: yes, 0: no.\n", HAVE_MF);
+	printf("-k : Times of viscosity coefficient (default %.4f).\n", ViscCoeffTimes);
+	printf("-cs: C_safe is CFL constant (default %.4f).\n", timeStepSafeFactor);
+	printf("-bn: How many pictures (or Tecplot files) to output (default %d).\n", TotBitmapOutputs);
 	printf("\n");
 }
+
 
 // Read arguments from the command line
 void SetParameter(int argc, char *argv[])
@@ -89,11 +85,7 @@ void SetParameter(int argc, char *argv[])
 		if(!strcmp(argv[i], "-mf"))
 		{
 			HAVE_MF = atoi(argv[i + 1]);
-		}
-		if(!strcmp(argv[i], "-mfm"))
-		{
-			MF_Method = atoi(argv[i + 1]);
-		}		
+		}	
 		if(!strcmp(argv[i], "-bn"))
 		{
 			TotBitmapOutputs = atoi(argv[i + 1]);
@@ -105,10 +97,6 @@ void SetParameter(int argc, char *argv[])
 		if(!strcmp(argv[i], "-cs"))
 		{
 			timeStepSafeFactor = atof(argv[i + 1]);
-		}	
-		if(!strcmp(argv[i], "-tg"))
-		{
-			TaylorGreen = atoi(argv[i + 1]);
 		}	
 		// Print help information
 		if(!strcmp(argv[i], "-help") || !strcmp(argv[i], "--help") || !strcmp(argv[i], "-h") || !strcmp(argv[i], "--h"))

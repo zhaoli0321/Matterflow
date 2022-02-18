@@ -41,7 +41,7 @@ void PrintNSInformation()
 
 void PrintInfo()
 {
-	printf("HAVE_MF = %d, MF_Method = %d, TotBitmapOutputs = %d \n\n", HAVE_MF, MF_Method, TotBitmapOutputs);
+	printf("HAVE_MF = %d, TotBitmapOutputs = %d \n\n", HAVE_MF, TotBitmapOutputs);
 	printf("Times of viscosity coefficient %.4f, C_safe = %.4f\n\n", ViscCoeffTimes, timeStepSafeFactor);
 	printf("Domain Omega = [0, %.2f] x [0, %.2f]\n", MeshObj.Width, MeshObj.Height); // print domain size
 	printf("\n");

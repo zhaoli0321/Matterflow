@@ -180,8 +180,7 @@ typedef struct triangle
 
 typedef enum boxBoundaryCondition
 {
-	BoxBoundaryCondition_Wall, // Solid Wall
-	BoxBoundaryCondition_Cycle // Periodic
+	BoxBoundaryCondition_Wall // Solid Wall
 } BoxBoundaryCondition;
 
 
@@ -283,7 +282,6 @@ extern int MatParasListLen;
 extern double ROfGas; 
 
 extern int HAVE_MF;     
-extern int MF_Method;     
 extern int TaylorGreen;     
 
 extern char * modelInfoFileName;

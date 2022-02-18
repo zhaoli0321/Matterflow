@@ -26,19 +26,13 @@ double GetWallTime(clock_t start_time, clock_t end_time)
 	return ( (double) (end_time - start_time) / CLOCKS_PER_SEC );
 }
 
-/// Binary quadratic function
-double func(vec2D x, double a, vec2D b, double c)
-{
-	return (a * Dot(x, x) + Dot(b, x) + c);
-}
 
-
-// Matter Flow 1
+// The Matter Flow method
 /*
 	min{ |lambda - p| }
 	a<p, p> + <b, p> + c = 0
  */
-vec2D CalculateMoveMomentumMatterFlow1(double a, vec2D b, double c, vec2D lambda)
+vec2D CalculateMoveMomentumMatterFlow(double a, vec2D b, double c, vec2D lambda)
 {
 	vec2D x_O;			// x_O is the coordinates of the center of the circle
 	double r, d, ratio; // r is the radius of the circle, d is the distance from the point lambda to x_O
@@ -51,9 +45,6 @@ vec2D CalculateMoveMomentumMatterFlow1(double a, vec2D b, double c, vec2D lambda
 	double rr = CalcLengthSquar(b) / (4*a*a) - c / a;
 	if(rr <= 0)
 	{
-		// printf("\nerror radius = %e < 0\n", rr);
-		// printf("a = %e, b^2 = %e, c = %e\n", a, CalcLengthSquar(b), c);
-		// r = d;
 		return (x_O);
 	}else{
 		r = sqrt(rr);
@@ -63,52 +54,11 @@ vec2D CalculateMoveMomentumMatterFlow1(double a, vec2D b, double c, vec2D lambda
 	{
 		ratio = r / d;
 	}else{
-		// printf("error distance = %e <= 0\n", d);
 		vec2D rn = {r, 0};
 		return ( Vec2DAdd(x_O, rn) );
 	}
 	/////////////
 	return ( Vec2DAdd(CValueMultVec2D(ratio, lambda), CValueMultVec2D(1-ratio, x_O)) );
-}
-
-
-
-// Matter Flow 2
-/*
-	min{ |p| }
-	a<p, p> + <b, p> + c = 0
- */	
-vec2D CalculateMoveMomentumMatterFlow2(double a, vec2D b, double c)
-{
-	vec2D x_O;  	// x_O is the coordinates of the center of the circle
-	double r, d; 	// r is the radius of the circle, d is the distance from the point lambda to x_O
-	
-	if(a < 0){
-		printf("error a = %e < 0\n", a);
-	}
-	x_O = CValueMultVec2D(- 1.0 / (2*a), b);
-	d = CalcLength(x_O);
-	///////////// Radius
-	double rr = CalcLengthSquar(b) / (4*a*a) - c / a;
-	if(rr < 0){
-		// printf("\nerror radius = %e < 0\n", rr);		
-		return (x_O);
-	}else if(rr == 0)
-	{
-		return (x_O);
-	}else{
-		r = sqrt(rr);
-	} 
-
-	if(d > 0)
-	{
-		return ( CValueMultVec2D(1 - r / d, x_O) );
-	}else{
-		// printf("error distance = %e <= 0\n", d);
-		vec2D rn = {r, 0};
-		// vec2D rn = {0.5 * sqrt(2) * r, 0.5 * sqrt(2) * r};
-		return (rn);
-	}
 }
 
 
@@ -594,60 +544,21 @@ void MatterFlowEvolve(double deltT)
 				trgNb->Mass += massFlowOut;
 				vertOpp->Mass -= massFlowOut / 3.0;
 				vertNbOpp->Mass += massFlowOut / 3.0;
-				
+
 				// printf("%s, %d\n", __FUNCTION__, __LINE__);
-				///////////// 2020-8-26
-				if ((vert1->IsOnUpDownBoundary && MeshObj.TopBottomBoundaryCondition == BoxBoundaryCondition_Wall) || (vert1->IsOnLeftRightBoundary && MeshObj.LeftRightBoundaryCondition == BoxBoundaryCondition_Wall) ||
-					(vert2->IsOnUpDownBoundary && MeshObj.TopBottomBoundaryCondition == BoxBoundaryCondition_Wall) || (vert2->IsOnLeftRightBoundary && MeshObj.LeftRightBoundaryCondition == BoxBoundaryCondition_Wall) ||
-					(vertOpp->IsOnUpDownBoundary && MeshObj.TopBottomBoundaryCondition == BoxBoundaryCondition_Wall) || (vertOpp->IsOnLeftRightBoundary && MeshObj.LeftRightBoundaryCondition == BoxBoundaryCondition_Wall) ||
-					(vertNbOpp->IsOnUpDownBoundary && MeshObj.TopBottomBoundaryCondition == BoxBoundaryCondition_Wall) || (vertNbOpp->IsOnLeftRightBoundary && MeshObj.LeftRightBoundaryCondition == BoxBoundaryCondition_Wall) ||
-					MF_Method == 0)
-				// if (MF_Method == 0)
-				{
-					// printf("%s, %d\n", __FUNCTION__, __LINE__);
-					//////////////////// S3 Correction of grid velocities according to conservation of momentum
-					//// Momentum change at midpoint
-					momentumFlowOut = Vec2DMultCValue(Vec2DAdd(vert1->Velocity, vert2->Velocity), massFlowOut / 2.0);
-					newMomentumOpp = Vec2DSub(initialMomentumOpp, Vec2DDivideCValue(momentumFlowOut, 3.0));
-					newMomentumNbOpp = Vec2DAdd(initialMomentumNbOpp, Vec2DDivideCValue(momentumFlowOut, 3.0));
-					vertOpp->Velocity = Vec2DDivideCValue(newMomentumOpp, vertOpp->Mass);
-					vertNbOpp->Velocity = Vec2DDivideCValue(newMomentumNbOpp, vertNbOpp->Mass);	
+				//////////////////// S3 Correction of grid velocities according to conservation of momentum
+				lambda = Vec2DMultCValue(Vec2DAdd(vert1->Velocity, vert2->Velocity), massFlowOut / 6.0);
+				a = 1.0 / vertOpp->Mass + 1.0 / vertNbOpp->Mass;
+				b = CValueMultVec2D(2, Vec2DSub(CValueMultVec2D(1.0 / vertNbOpp->Mass, initialMomentumNbOpp), CValueMultVec2D(1.0 / vertOpp->Mass, initialMomentumOpp)));
+				c = (1.0 / vertOpp->Mass - 1.0 / (vertOpp->Mass + massFlowOut / 3.0)) * CalcLengthSquar(initialMomentumOpp) 
+					+ (1.0 / vertNbOpp->Mass - 1.0 / (vertNbOpp->Mass - massFlowOut / 3.0)) * CalcLengthSquar(initialMomentumNbOpp);
 
-					//////////////////// S4 Correcting the internal energy of the cell according to the conservation of kinetic energy 
-					deltMassVert = massFlowOut / 3.0;
-					deltMomentumVert = Vec2DDivideCValue(momentumFlowOut, 3.0);
-					deltKineticEnergy = 0.5 * (
-						Dot(Vec2DSub(CValueMultVec2D(2, initialMomentumOpp), deltMomentumVert), deltMomentumVert) / (vertOpp->Mass - deltMassVert)
-						- deltMassVert / (vertOpp->Mass - deltMassVert) * Dot(initialMomentumOpp, initialMomentumOpp) / vertOpp->Mass
-						+ Dot(Vec2DSub(CValueMultVec2D(-2, initialMomentumNbOpp), deltMomentumVert), deltMomentumVert) / (vertNbOpp->Mass + deltMassVert)
-						+ deltMassVert / (vertNbOpp->Mass + deltMassVert) * Dot(initialMomentumNbOpp, initialMomentumNbOpp) / vertNbOpp->Mass
-						);
-					trg->InternalEnergy += 0.5 * deltKineticEnergy;
-					trgNb->InternalEnergy += 0.5 * deltKineticEnergy;
-				}
-				else
-				{
-					// printf("%s, %d\n", __FUNCTION__, __LINE__);
-					//////////////////// S3 Correction of grid velocities according to conservation of momentum
-					lambda = Vec2DMultCValue(Vec2DAdd(vert1->Velocity, vert2->Velocity), massFlowOut / 6.0);
-					a = 1.0 / vertOpp->Mass + 1.0 / vertNbOpp->Mass;
-					b = CValueMultVec2D(2, Vec2DSub(CValueMultVec2D(1.0 / vertNbOpp->Mass, initialMomentumNbOpp), CValueMultVec2D(1.0 / vertOpp->Mass, initialMomentumOpp)));
-					c = (1.0 / vertOpp->Mass - 1.0 / (vertOpp->Mass + massFlowOut / 3.0)) * CalcLengthSquar(initialMomentumOpp) 
-						+ (1.0 / vertNbOpp->Mass - 1.0 / (vertNbOpp->Mass - massFlowOut / 3.0)) * CalcLengthSquar(initialMomentumNbOpp);
-					// double rr = CalcLengthSquar(b) / (4*a*a) - c / a;
+				momentumFlowOut = CalculateMoveMomentumMatterFlow(a, b, c, lambda); // solving optimization problem
 
-					if(MF_Method == 1){
-						momentumFlowOut = CalculateMoveMomentumMatterFlow1(a, b, c, lambda);
-					}
-					if(MF_Method == 2){
-						momentumFlowOut = CalculateMoveMomentumMatterFlow2(a, b, c);
-					}
-
-					newMomentumOpp = Vec2DSub(initialMomentumOpp, momentumFlowOut);
-					newMomentumNbOpp = Vec2DAdd(initialMomentumNbOpp, momentumFlowOut);
-					vertOpp->Velocity = Vec2DDivideCValue(newMomentumOpp, vertOpp->Mass);
-					vertNbOpp->Velocity = Vec2DDivideCValue(newMomentumNbOpp, vertNbOpp->Mass);
-				}
+				newMomentumOpp = Vec2DSub(initialMomentumOpp, momentumFlowOut);
+				newMomentumNbOpp = Vec2DAdd(initialMomentumNbOpp, momentumFlowOut);
+				vertOpp->Velocity = Vec2DDivideCValue(newMomentumOpp, vertOpp->Mass);
+				vertNbOpp->Velocity = Vec2DDivideCValue(newMomentumNbOpp, vertNbOpp->Mass);
 			}
 
 			/////////////////////////////////////////////// Reset the dependent variables of the intensity type

@@ -99,10 +99,6 @@ void SetMeshFromMeshFiles(char nodesFileName[], char cellsFileName[]);
 
 void LoadMeshFileNames(FILE * fr, char nodesFileName[], char cellsFileName[]);
 
-void LoadBoxBoundaryCondition(FILE * fr, BoxBoundaryCondition * topBottomCondition, BoxBoundaryCondition * leftRightCondition);
-
-double ReadGravityAcceleration(FILE * fr);
-
 void LoadTimeInterval(FILE * fr, double * timeInterval, double * timeEnd);
 
 void MeshObjectFromLoadModel(char * modelFile);
@@ -114,11 +110,7 @@ void ERR(char * prnt);
 
 double GetWallTime(clock_t start_time, clock_t end_time);
 
-double func(vec2D x, double a, vec2D b, double c);
-
-vec2D CalculateMoveMomentumMatterFlow1(double a, vec2D b, double c, vec2D lambda);
-
-vec2D CalculateMoveMomentumMatterFlow2(double a, vec2D b, double c);
+vec2D CalculateMoveMomentumMatterFlow(double a, vec2D b, double c, vec2D lambda);
 
 void SetGravity();
 

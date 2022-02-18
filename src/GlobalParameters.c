@@ -19,12 +19,6 @@ char *modelInfoFileName = "./data/0.05/Compute_Model_For_TriAngels.txt";
 /// Whether to use the matter flow method, 1: ON, 0: OFF
 int HAVE_MF     = 1;     
 
-/// Choices of matter flow method
-// 0: Momentum of the midpoint, i.e. Delta P=(v1+v2)M/3; 
-// 1: Midpoint + Delta P (optimization problem), default value; 
-// 2: Delta P (optimization problem)
-int MF_Method   = 1;     
-
 /// Whether it is a Taylor-Green vortex Problem, the energy equation needs to add a source term
 int TaylorGreen = 1;     
 
@@ -53,7 +47,7 @@ double TimeInterval = 1.0;
 double TimeEnd = 1.0;
 
 /// The number of pictures (Tecplot files) to output
-int TotBitmapOutputs = 100;
+int TotBitmapOutputs = 20;
 
 /// Initialize the number of iterations
 int Iter = 0;

@@ -21,16 +21,6 @@ NodesFileName = "./data/0.0125/Compute-Mesh-1-Nodes.txt"
 
 CellsFileName = "./data/0.0125/Compute-Mesh-2-Cells.txt"
 
->> Boundary Conditions of Computation Domain (Options: SolidWall, Period)
-
-TopBottomBoundaryCondition = SolidWall
-
-LeftRightBoundaryCondition = SolidWall
-
->> Gravitational Acceleration
-
-GravityAcceleration = 0.0           $Unit (cm/us^2)
-
 >> Time Interval of Data Output and Program End Time (us)
 
 TimeIntervalForOutput = 0.001
