@@ -1,0 +1,28 @@
+>> Material Settings
+
+  The Types of Equations of State are:
+  1. Linear Elastic Fluid;
+  2. Ideal Gas;
+
+---------------------------- Material 1
+Material Name
+  MaterialName = Ideal Gas
+Equation of State Types and Parameters:
+  EOSType = 2
+  Gamma = 1.66666666
+  MolMass = 1.0                        $Molar Mass of Gas, Unit (g/mol)
+Motion Viscosity Coefficient:
+  MotionViscos = 0.000                 $Unit (m^2/s)
+====================================
+
+>> Node and Element File Names
+
+NodesFileName = "./data/0.0125/Compute-Mesh-1-Nodes.txt"
+
+CellsFileName = "./data/0.0125/Compute-Mesh-2-Cells.txt"
+
+>> Time Interval of Data Output and Program End Time (us)
+
+TimeIntervalForOutput = 0.001
+
+TimeEnd = 0.5

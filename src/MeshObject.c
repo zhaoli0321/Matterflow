@@ -332,83 +332,6 @@ void DynamicEvolve(double deltT)
 	}	
 }
 
-/// Artificial heat flux: update the internal energy of the fluid
-#if ThermalDiffusion
-void DynamicEvolveThermalDiffusion(double deltT)
-{
-	int VertsArrLen = MeshObj.VertsArrLen, TrgsArrLen = MeshObj.TrgsArrLen;
-	Vertex Vertices = MeshObj.Vertices;
-	Triangle Trgs = MeshObj.Trgs;
-	double Eps = 1E-20;
-
-	int i, k;
-	Triangle trg;
-	double FluxRate;
-
-	for (k = 0; k < TrgsArrLen; k++)
-	{
-		trg = &Trgs[k];
-		// The vacuum element is not allowed to have internal energy diffusion
-		if (trg->MaterialId <= 0) continue; 
-#if SALTZMAN			
-		if (trg->MaterialId == 1) continue; // material == 1 是活塞单元
-#endif	
-
-		for (i = 0; i < 3; i++)
-		{
-			Triangle trgRight = trg->NeighbourTrgs[i];
-			// If there is no element on the ith side of the triangle, skip
-			if(trgRight == NullTriangle) continue;
-#if SALTZMAN			
-			if (trgRight->MaterialId == 1) continue; // material == 1 是活塞单元
-#endif	
-#if HalfMesh_SALTZMAN
-			// 由于 Saltzman 的网格是镜像翻倍网格，
-			// 为了降低计算量，程序中存的镜像翻倍的网格，但计算的时候只用一半的网格来计算
-			if(trgRight->Index >= TrgsArrLen) continue; // 不流向另一半网格
-#endif						
-			/// The two end positions of the edge and the edge vector
-			vec2D posEnd1 = trg->CycledPoses[i];
-			vec2D posEnd2 = trg->CycledPoses[(i + 1) % 3];
-			vec2D sideVec = Vec2DSub(posEnd2, posEnd1);
-			double sideLength = CalcLength(sideVec);
-			/// Distances from left and right center points to the edge
-			double distLeft, distRight;
-			/// Left distance
-			{
-				vec2D posCLeft = Vec2DDivideCValue(Vec2DAdd3(trg->CycledPoses[0], trg->CycledPoses[1], trg->CycledPoses[2]), 3.0);
-				distLeft = fabs(Cross(Vec2DSub(posCLeft, posEnd1), sideVec)) / sideLength;
-			}
-			/// Right distance
-			{
-				vec2D posCRight = Vec2DDivideCValue(Vec2DAdd3(trgRight->CycledPoses[0], trgRight->CycledPoses[1], trgRight->CycledPoses[2]), 3.0);
-				distRight = fabs(Cross(Vec2DSub(posCRight, posEnd1), sideVec)) / sideLength;
-			}
-			
-			
-			/// Internal energy densities in left and right triangles
-			trg->InternalEnergyDensity = trg->InternalEnergy / trg->Mass; // Internal energy density in left triangle
-			trgRight->InternalEnergyDensity = trgRight->InternalEnergy / trgRight->Mass; // Internal energy density in right triangle
-
-			/// The thermal diffusion coefficient is equal to 0 and no heat flux occurs.
-			if (fabs(trg->ThermalDiffusionCoeff) < Eps || fabs(trgRight->ThermalDiffusionCoeff) < Eps) FluxRate = 0.0;
-			else 
-			{
-				double conductivityDistLeft = distLeft / trg->ThermalDiffusionCoeff; 
-				double conductivityDistRight = distRight / trgRight->ThermalDiffusionCoeff;
-				//printf("conductivityDistLeft = %e, conductivityDistRight = %e\n", conductivityDistLeft, conductivityDistRight);
-				
-				/// heat flux
-				FluxRate = (trgRight->InternalEnergyDensity - trg->InternalEnergyDensity) * sideLength / (conductivityDistLeft + conductivityDistRight);
-				if (isNAN(FluxRate)) FluxRate = 0.0;
-			}
-
-			// update the internal energy of element
-			trg->InternalEnergy += deltT * FluxRate;
-		}
-	}
-}
-#endif
 
 /// Calculate the acceleration of matter flow
 void CalculateMatterFlowAcc()
@@ -480,7 +403,8 @@ void CalculateMatterFlowAcc()
 				//////////////////// The acceleration of the assumed midpoint				
 				force 	= CValueMultVec2D((trg->Pressure + trg->Viscos) * 0.5, side);
 				forceNb = CValueMultVec2D((trgNb->Pressure + trgNb->Viscos) * (-0.5), side);					
-				ac = Dot(Vec2DAdd(force, forceNb), sn) / ((trg->Mass + trgNb->Mass) / 3.0);
+				ac = Dot(Vec2DAdd(force, forceNb), sn) / ((trg->Mass + trgNb->Mass) / 4.0);
+				//double ac = Dot(force + forceNb, sn) / ((trg->Mass + trgNb->Mass) / 3.0);
 				//////////////////// 
 				trg->FlowAcc[i] = ac - a12;
 			}
@@ -506,7 +430,7 @@ void MatterFlowEvolve(double deltT)
 	Vertex vert1, vert2, vertOpp, vertNbOpp;
 	double massFlowOut;
 	int idNb = -1;
-	double sideLength, moveDistance, C_diss, flowDensity;
+	double sideLength, moveDistance, factorDecrease, flowDensity;
 	double internalEnergy, internalEnergyNb, energyFlowOut, initialKineticEnergy, deltMassVert, deltKineticEnergy;
 	vec2D initialMomentumOpp, initialMomentumNbOpp, momentumFlowOut, newMomentumOpp, newMomentumNbOpp, deltMomentumVert;
 	double a, c;
@@ -563,14 +487,14 @@ void MatterFlowEvolve(double deltT)
 				sideLength = CalcLength(Vec2DSub(trg->CycledPoses[i], trg->CycledPoses[(i + 1) % 3]));
 				vertOpp = trg->Vertices[(i + 2) % 3];
 				vertNbOpp = trgNb->Vertices[(idNb + 2) % 3];
-				moveDistance = trg->FlowVelocity[i] * halfDeltT + 0.5 * trg->FlowAcc[i] * halfDeltT * halfDeltT;
+				moveDistance = (trg->FlowVelocity[i] + 0.5 * trg->FlowAcc[i] * halfDeltT) * halfDeltT;
 				trg->FlowVelocity[i] += trg->FlowAcc[i] * halfDeltT;
-				
-				// An artificial dissipation factor C_diss is introduced in the evolution equation of the matter flow velocity.
-				C_diss = (trg->ViscCoeff * trg->Density + trgNb->ViscCoeff * trgNb->Density) / ((trg->Mass + trgNb->Mass) / 3.0); 
-				trg->FlowVelocity[i] -= trg->FlowVelocity[i] * halfDeltT * C_diss;
-				
-				///
+				//double soundTime = 2.0 * trg->Area / sideLength / trg->SoundVelocity;
+				//double soundTimeNb = 2.0 * trgNb->Area / sideLength / trgNb->SoundVelocity;
+				//trg->FlowVelocity[i] -= trg->FlowVelocity[i] * max(0.0001, min(0.9999, (5.0 * halfDeltT / min(soundTime, soundTimeNb))));
+				factorDecrease = max(trg->ViscCoeff / (trg->Area / 3), trgNb->ViscCoeff / (trgNb->Area / 3));
+				trg->FlowVelocity[i] -= trg->FlowVelocity[i] * max(0.0001, min(0.9999, halfDeltT * factorDecrease));
+				///// ..
 				trgNb->FlowVelocity[idNb] = -trg->FlowVelocity[i]; // Synchronize matter flow velocities in neighborhood triangles
 				// The flow density is taken according to the flow direction. If it is outflow, it is taken as the density of this triangle.
 				//  (It is to avoid too much outflow of small density triangles, resulting in negative density)
@@ -597,8 +521,12 @@ void MatterFlowEvolve(double deltT)
 				}
 				///////////////////////////////////// Step 2.2 The flow of internal energy due to the work done by the volume change of the unit caused by the flow of matter.
 				{					
-					energyFlowOut = 0.5 * ( + (trg->Pressure   + trg->Viscos  ) * massFlowOut / trg->Density
-											+ (trgNb->Pressure + trgNb->Viscos) * massFlowOut / trgNb->Density);
+					//double energyFlowOut = 0.5 * ((trg->Pressure + trg->ViscosTensor.TraceAverage()) * massFlowOut / trg->Density
+					//                              + (trgNb->Pressure + trgNb->ViscosTensor.TraceAverage()) * massFlowOut / trgNb->Density);
+					energyFlowOut = 0.5 * (-(trg->Pressure + trg->Viscos) * trg->Area * log(1 - massFlowOut / trg->Mass)
+						+ (trgNb->Pressure + trgNb->Viscos) * trgNb->Area * log(1 + massFlowOut / trgNb->Mass));
+					//double energyFlowOut = 0.5 * (-(trg->Pressure + trg->ViscosTensor.TraceAverage() + trg->Stress.TraceAverage()) * trg->Volumn * log(1 - massFlowOut / trg->Mass)
+					//                              + (trgNb->Pressure + trgNb->ViscosTensor.TraceAverage() + trgNb->Stress.TraceAverage()) * trgNb->Volumn * log(1 + massFlowOut / trgNb->Mass));					
 					trg->InternalEnergy -= energyFlowOut;
 					trgNb->InternalEnergy += energyFlowOut;
 				}
@@ -607,7 +535,7 @@ void MatterFlowEvolve(double deltT)
 			{
 				//////////////////// S1 Record old kinetic energy and momentum
 				initialKineticEnergy = 0.5 * vertOpp->Mass * CalcLengthSquar(vertOpp->Velocity)
-									 + 0.5 * vertNbOpp->Mass * CalcLengthSquar(vertNbOpp->Velocity);
+										+ 0.5 * vertNbOpp->Mass * CalcLengthSquar(vertNbOpp->Velocity);
 				initialMomentumOpp = CValueMultVec2D(vertOpp->Mass, vertOpp->Velocity);
 				initialMomentumNbOpp = CValueMultVec2D(vertNbOpp->Mass, vertNbOpp->Velocity);
 				
@@ -618,25 +546,25 @@ void MatterFlowEvolve(double deltT)
 				vertNbOpp->Mass += massFlowOut / 3.0;
 
 				// printf("%s, %d\n", __FUNCTION__, __LINE__);
-				//////////////////// S3 Correction of grid velocities
+				//////////////////// S3 Correction of grid velocities according to conservation of momentum
 				lambda = Vec2DMultCValue(Vec2DAdd(vert1->Velocity, vert2->Velocity), massFlowOut / 6.0);
 				a = 1.0 / vertOpp->Mass + 1.0 / vertNbOpp->Mass;
 				b = CValueMultVec2D(2, Vec2DSub(CValueMultVec2D(1.0 / vertNbOpp->Mass, initialMomentumNbOpp), CValueMultVec2D(1.0 / vertOpp->Mass, initialMomentumOpp)));
 				c = (1.0 / vertOpp->Mass - 1.0 / (vertOpp->Mass + massFlowOut / 3.0)) * CalcLengthSquar(initialMomentumOpp) 
 					+ (1.0 / vertNbOpp->Mass - 1.0 / (vertNbOpp->Mass - massFlowOut / 3.0)) * CalcLengthSquar(initialMomentumNbOpp);
 
-				// obtaining outflow momentum by solving optimization problem
-				momentumFlowOut = CalculateMoveMomentumMatterFlow(a, b, c, lambda); 
+				momentumFlowOut = CalculateMoveMomentumMatterFlow(a, b, c, lambda); // solving optimization problem
 
-				newMomentumOpp   = Vec2DSub(initialMomentumOpp, momentumFlowOut);
+				newMomentumOpp = Vec2DSub(initialMomentumOpp, momentumFlowOut);
 				newMomentumNbOpp = Vec2DAdd(initialMomentumNbOpp, momentumFlowOut);
-				vertOpp->Velocity   = Vec2DDivideCValue(newMomentumOpp, vertOpp->Mass);
+				vertOpp->Velocity = Vec2DDivideCValue(newMomentumOpp, vertOpp->Mass);
 				vertNbOpp->Velocity = Vec2DDivideCValue(newMomentumNbOpp, vertNbOpp->Mass);
 			}
 
 			/////////////////////////////////////////////// Reset the dependent variables of the intensity type
 			SetStrengthTypeDependentVariables(trg);
 			SetStrengthTypeDependentVariables(trgNb);
+			
 		}
 	}
 }
@@ -734,31 +662,27 @@ void SetStrengthTypeDependentVariables(Triangle trg)
 			// Contribution of matter flow to the strain rate (tensor)
 			strainRatio += (0.5 * massFlowOutRatio / trg->Mass);
 		}
-		
-		/// Determine the viscosity coefficient
-		double L = sqrt(trg->Area0); // Using constant length
-		trg->ViscCoeff = ViscCoeffTimes * max(-2.0 * strainRatio * L * L, trg->SoundVelocitySum * L);
-		if (isNAN(trg->ViscCoeff)) trg->ViscCoeff = 0;
+		////////////// Determine the viscosity coefficient (take the larger value between the dynamic artificial viscosity coefficient and the physical viscosity coefficient)
+		{
+			// Use Equation (50) in G. Scovazzi, JCP 231 (2012) 8029-8069.
+			double artiViscCoeff = 2.0 * maxSideLength * maxSideLength * (-strainRatio);
+			artiViscCoeff = max(artiViscCoeff, 1.0 * maxSideLength * trg->SoundVelocitySum);
 
-		/// Calculate viscous stress from strain rate and viscosity coefficient
+			trg->ViscCoeff = max(artiViscCoeff, GetViscousCoefficient(trg->MaterialId));
+			trg->ViscCoeff *= ViscCoeffTimes; // 2020.7.4
+		}
+		////////////// Calculate viscous stress from strain rate and viscosity coefficient
 		trg->Viscos = -trg->ViscCoeff * strainRatio * trg->Density;
 
-		/// The sum of the internal stresses in the fluid. Including: pressure and viscous stress.
-		trg->TotalFluidStress = CValueToTensor2D(trg->Pressure + trg->Viscos);
-
-#if ThermalDiffusion
-		double c1 = 1.0, c2 = 1.0;	
-		double cs = trg->SoundVelocitySum; // speed of sound
-		
-		// The heat diffusion coefficient
-		double Kappa = TDCoeffTimes * (c1 * L * L * fabs(strainRatio) + c2 * cs * L);
-		trg->ThermalDiffusionCoeff = Kappa * trg->Density;
-#endif
-	}
-	else
-	{ 
-		// No thermal diffusion in vacuum elements
-		trg->ThermalDiffusionCoeff = 0; 
+		/////////////////////////////////////////////////////////////////////// The sum of the internal stresses in the fluid. Including: pressure, elastic stress, viscous stress.
+		if (trg->MaterialId > 0)
+		{
+			trg->TotalFluidStress = CValueToTensor2D(trg->Pressure + trg->Viscos);//CValueAddTensor2D(trg->Pressure + trg->Viscos, trg->Stress);
+		}
+		else
+		{
+			trg->TotalFluidStress = CValueToTensor2D(trg->Pressure + trg->Viscos);//trg->Pressure * UnitTensor + trg->ViscosTensor.TraceAverage() * UnitTensor;
+		}
 	}
 }
 
@@ -816,13 +740,13 @@ double DetermineDeltT()
 		deltTNameIDOfThisTrg = -1;
 		//////////////////////////////
 		if (trg->MaterialId <= 0) continue;
-		///
+		/////////////////////////////////////////////////////
 
-		/// (1) Calculate the time-step determined by the speed of sound
+		///////////////////////////////////////////////// (1) Calculate the time-step determined by the speed of sound
 		deltTSoundVelocity = timeStepSafeFactor * trg->MinHeight / trg->SoundVelocitySum;
-		/// (2) Calculate the time-step determined by the viscosity, [G.Scovazzi2012JCP]
+		///////////////////////////////////////////////// (2) Calculate the time-step determined by the viscosity, [G.Scovazzi2012JCP]
 		deltTViscous = timeStepSafeFactor * (trg->MinHeight * trg->MinHeight / trg->ViscCoeff);
-		/// (3-4) Calculate the time-step determined by the velocities and accelerations of the triangle vertices
+		///////////////////////////////////////////////// (3-4) Calculate the time-step determined by the velocities and accelerations of the triangle vertices
 		{
 			maxHeightChangeRate = CalcTrgMaxHeightChangeRate(
 				Vec2DSub(trg->CycledPoses[1], trg->CycledPoses[0]),
@@ -855,7 +779,7 @@ double DetermineDeltT()
 				deltTVertexAcc = timeStepSafeFactor * sqrt(2.0 / maxHeighChangeRateByAcc);
 			}
 		}
-		/// (5) Calculate the time-step determined by the velocity of the matter flow
+		///////////////////////////////////////////////// (5) Calculate the time-step determined by the velocity of the matter flow
 		{
 			{
 				for (i = 0; i < 3; i++)

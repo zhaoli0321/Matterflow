@@ -19,17 +19,11 @@ char *modelInfoFileName = "./data/0.05/Compute_Model_For_TriAngels.txt";
 /// Whether to use the matter flow method, 1: ON, 0: OFF
 int HAVE_MF     = 1;     
 
-/// Whether it is the Taylor-Green vortex problem, the energy equation needs to add a source term
-int TaylorGreen = 0;     
-
-/// Whether it is the Gresho vortex problem
-int Gresho = 0;
+/// Whether it is a Taylor-Green vortex Problem, the energy equation needs to add a source term
+int TaylorGreen = 1;     
 
 /// Times of viscosity coefficient (adjustable)
 double ViscCoeffTimes = 2; 
-
-/// Times of thermal diffusion coefficient (adjustable)
-double TDCoeffTimes = 0;
 
 /// Time-step factor
 double timeStepSafeFactor = 0.5; 

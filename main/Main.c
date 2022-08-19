@@ -51,8 +51,11 @@ void main(int argc, char *argv[])
 	// Print Numerical Simulation Information
 	PrintNSInformation();
 
-	if(TaylorGreen) TaylorGreenL2Norm();	
-	if(Gresho) ComputeL2normForGresho();
+	if(TaylorGreen){	
+		TaylorGreenOutPutBottomEdgePhysics();
+	// 	VolumeWeightedL1Norm();
+	// 	TaylorGreenL2Norm();
+	}	
 }
 
 
@@ -60,11 +63,8 @@ void PrintHelpInfo()
 {
 	printf("\n");
 	printf("-f : Model file.\n");
-	printf("-tg : Is there Taylor-Green vortex problem (default %d), 1: yes, 0: no.\n", TaylorGreen);
-	printf("-go : Is there Gresho       vortex problem (default %d), 1: yes, 0: no.\n", Gresho);
 	printf("-mf: Is there the matter flow method (default %d), 1: yes, 0: no.\n", HAVE_MF);
 	printf("-k : Times of viscosity coefficient (default %.4f).\n", ViscCoeffTimes);
-	printf("-td: Times of thermal diffusion coefficient (default %.4f).\n", TDCoeffTimes);
 	printf("-cs: C_safe is CFL constant (default %.4f).\n", timeStepSafeFactor);
 	printf("-bn: How many pictures (or Tecplot files) to output (default %d).\n", TotBitmapOutputs);
 	printf("\n");
@@ -94,18 +94,6 @@ void SetParameter(int argc, char *argv[])
 		{
 			ViscCoeffTimes = atof(argv[i + 1]);
 		}	
-		if(!strcmp(argv[i], "-td"))
-		{
-			TDCoeffTimes = atof(argv[i + 1]);
-		}	
-		if(!strcmp(argv[i], "-tg"))
-		{
-			TaylorGreen = atoi(argv[i + 1]);
-		}	
-		if(!strcmp(argv[i], "-go"))
-		{
-			Gresho = atoi(argv[i + 1]);
-		}				
 		if(!strcmp(argv[i], "-cs"))
 		{
 			timeStepSafeFactor = atof(argv[i + 1]);
@@ -257,13 +245,7 @@ void Evolve()
 		DynamicEvolve(deltT);
 	    /// Update dependent variables
 	    SetAllDependentVariablesOfTrgs();
-	    
-#if ThermalDiffusion
-		/// Thermal diffusion evolution  
-		DynamicEvolveThermalDiffusion(deltT);
-#endif		
-
-		/// Matter flow evolution (alleviate the checkerboard oscillations)
+	    /// Matter flow evolution (alleviate the checkerboard oscillations of physical quantities)
 		if(HAVE_MF){
 			t1 = clock();
 			MatterFlowEvolve(deltT);
