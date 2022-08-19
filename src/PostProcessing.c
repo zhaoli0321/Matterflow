@@ -12,6 +12,9 @@
 #include "matterflow.h"
 #include "matterflow_functs.h"
 
+// internal function declarations
+int system(char *);
+int access(char *, int );
 
 /* Create directory: determine whether the directory exists, if not, create the directory */
 void CreateDirectory(char *dirName)
@@ -42,7 +45,9 @@ void PrintNSInformation()
 void PrintInfo()
 {
 	printf("HAVE_MF = %d, TotBitmapOutputs = %d \n\n", HAVE_MF, TotBitmapOutputs);
-	printf("Times of viscosity coefficient %.4f, C_safe = %.4f\n\n", ViscCoeffTimes, timeStepSafeFactor);
+	printf("Times of viscosity coefficient %.4f\n\n", ViscCoeffTimes);
+	printf("Times of heat diffusion coefficient %.4f\n\n", TDCoeffTimes);
+	printf("Time-step factor C_safe = %.4f\n\n", timeStepSafeFactor);
 	printf("Domain Omega = [0, %.2f] x [0, %.2f]\n", MeshObj.Width, MeshObj.Height); // print domain size
 	printf("\n");
 }
@@ -351,10 +356,10 @@ void TaylorGreenL2Norm()
 {
     int         v = 0, c = 0, vSize = MeshObj.VertsArrLen, cSize = MeshObj.TrgsArrLen;
     double      x = 0, y = 0, xc = 0, yc = 0;
-    double      VelL2 = 0, PreL2 = 0;
-    double      vx_exact, vy_exact, vx, vy, p_exact, p;
+    double      VelL2 = 0, PreL2 = 0, DenL2 = 0;
+    double      vx_exact, vy_exact, vx, vy, p_exact, p, rho, rho_exact = 1;
 
-    /////// For node 
+    /// For node 
     for  (v = 0; v < vSize; v++)
     {
         x = MeshObj.Vertices[v].Pos.X;
@@ -368,169 +373,133 @@ void TaylorGreenL2Norm()
 
         VelL2 += (vx - vx_exact)*(vx - vx_exact) + (vy - vy_exact)*(vy - vy_exact);
     }
-    VelL2 /= sqrt(vSize);
+    VelL2 = sqrt(VelL2/vSize);
 
 
-    /////// For cell
+    /// For cell
     for(c = 0; c < cSize; c++)
     {
         xc = (MeshObj.Trgs[c].Vertices[0]->Pos.X + MeshObj.Trgs[c].Vertices[1]->Pos.X + MeshObj.Trgs[c].Vertices[2]->Pos.X) / 3.0;
         yc = (MeshObj.Trgs[c].Vertices[0]->Pos.Y + MeshObj.Trgs[c].Vertices[1]->Pos.Y + MeshObj.Trgs[c].Vertices[2]->Pos.Y) / 3.0;
         
+        // Computational pressure analytical solution
         p_exact = PressureAnalyticalSolution_TaylorGreen(xc, yc);
+        p = MeshObj.Trgs[c].Pressure;
+        rho = MeshObj.Trgs[c].Density;
+
+        PreL2 += (p_exact - p)*(p_exact - p);
+        DenL2 += (rho_exact - rho)*(rho_exact - rho);
+    }
+    PreL2 = sqrt(PreL2/cSize);
+    DenL2 = sqrt(DenL2/cSize);
+
+    printf("Print TaylorGreenL2Norm\n");
+    printf("Density  L2 = %e\n", DenL2);
+    printf("Pressure L2 = %e\n", PreL2);
+    printf("Velocity L2 = %e\n", VelL2);
+}
+
+
+
+
+/*------------------------------------------------------------------------------------------------*/
+// Computational error for Gresho vortex problem, 2022.08.19
+/*------------------------------------------------------------------------------------------------*/
+void VelocityExactForGresho(double x, double y, double *vx, double *vy)
+{
+   // Vortex center is (xc, yc)
+   double xc = MeshObj.Width / 2; 
+   double yc = MeshObj.Width / 2; 
+   x = x - xc;
+   y = y - yc;
+   const double r = sqrt(x * x + y * y);
+
+   if (r < 0.2)
+   {
+      *vx =  5.0 * y;
+      *vy = -5.0 * x;
+   }
+   else if (r < 0.4)
+   {
+      *vx =  2.0 * y / r - 5.0 * y;
+      *vy = -2.0 * x / r + 5.0 * x;
+   }
+   else { 
+      *vx = 0.0; 
+      *vy = 0.0; 
+   }
+}
+
+double PressureExactForGresho(double x, double y)
+{
+    // Vortex center is (xc, yc)
+    double xc = MeshObj.Width / 2; 
+    double yc = MeshObj.Width / 2; 
+    const double rsq = (x-xc) * (x-xc) + (y-yc) * (y-yc), r = sqrt(rsq);
+    if (r < 0.2)
+    {
+        return (5.0 + 25.0 / 2.0 * rsq);
+    }
+    else if (r < 0.4)
+    {
+        const double t1 = 9.0 - 4.0 * log(0.2) + 25.0 / 2.0 * rsq;
+        const double t2 = 20.0 * r - 4.0 * log(r);
+        return (t1 - t2);
+    }
+    else { return (3.0 + 4.0 * log(2.0)); }
+}
+
+
+/*
+* L2 norm for calculating velocity and pressure
+*/
+void ComputeL2normForGresho()
+{
+    int         v = 0, c = 0, vSize = MeshObj.VertsArrLen, cSize = MeshObj.TrgsArrLen;
+    double      x = 0, y = 0, xc = 0, yc = 0;
+    double      VelL2 = 0, PreL2 = 0, DenL2 = 0;
+    double      vx_exact, vy_exact, vx, vy, p_exact, p, rho_exact = 1, rho;
+
+    /// Node variables
+    for  (v = 0; v < vSize; v++)
+    {
+        x = MeshObj.Vertices[v].Pos.X;
+        y = MeshObj.Vertices[v].Pos.Y;
+
+        // Analytical solution of computational velocity
+        VelocityExactForGresho(x, y, &vx_exact, &vy_exact);
+        
+        vx = MeshObj.Vertices[v].Velocity.X;
+        vy = MeshObj.Vertices[v].Velocity.Y;
+
+        VelL2 += (vx - vx_exact)*(vx - vx_exact) + (vy - vy_exact)*(vy - vy_exact);
+    }
+
+    VelL2 = sqrt(VelL2/vSize);
+
+    /// Element variables
+    for(c = 0; c < cSize; c++)
+    {
+        xc = (MeshObj.Trgs[c].Vertices[0]->Pos.X + MeshObj.Trgs[c].Vertices[1]->Pos.X + MeshObj.Trgs[c].Vertices[2]->Pos.X) / 3.0;
+        yc = (MeshObj.Trgs[c].Vertices[0]->Pos.Y + MeshObj.Trgs[c].Vertices[1]->Pos.Y + MeshObj.Trgs[c].Vertices[2]->Pos.Y) / 3.0;
+        
+        // Analytical solution of computational pressure
+        p_exact = PressureExactForGresho(xc, yc);
         p = MeshObj.Trgs[c].Pressure;
 
         PreL2 += (p_exact - p)*(p_exact - p);
+
+        // density
+        rho = MeshObj.Trgs[c].Density;
+        DenL2 += (rho_exact - rho)*(rho_exact - rho);
     }
-    PreL2 /= sqrt(cSize);
 
-    printf("Print TaylorGreenL2Norm\n");
-    printf("VelL2 = %e\n", VelL2);
-    printf("PreL2 = %e\n", PreL2);
-}
+    PreL2 = sqrt(PreL2/cSize);
+    DenL2 = sqrt(DenL2/cSize);
 
-
-// Volume-Weighted L1 error of calculation speed and pressure for Taylor-Green problem
-void VolumeWeightedL1Norm()
-{
-    int         v = 0, c = 0, vSize = MeshObj.VertsArrLen, cSize = MeshObj.TrgsArrLen;
-    double      x = 0, y = 0, xc = 0, yc = 0;
-    double      VelL1 = 0, PreL1 = 0, TotalNodalVolume = 0, TotalElementVolume = 0;
-    double      vx_exact, vy_exact, vx, vy, p_exact, p, elem_vol, *node_vol = NULL;
-
-    node_vol = (double *) calloc(vSize, sizeof(double));
-    /////// Calculate the volume of the node control volum
-    for(c = 0; c < cSize; c++)
-    {
-        xc = (MeshObj.Trgs[c].Vertices[0]->Pos.X + MeshObj.Trgs[c].Vertices[1]->Pos.X + MeshObj.Trgs[c].Vertices[2]->Pos.X) / 3.0;
-        yc = (MeshObj.Trgs[c].Vertices[0]->Pos.Y + MeshObj.Trgs[c].Vertices[1]->Pos.Y + MeshObj.Trgs[c].Vertices[2]->Pos.Y) / 3.0;
-        
-        // printf("trg[%d], {(%.2f, %0.2f), (%.2f, %0.2f), (%.2f, %0.2f)}\n", c, MeshObj.Trgs[c].Vertices[0]->Pos.X, MeshObj.Trgs[c].Vertices[0]->Pos.Y, 
-        // MeshObj.Trgs[c].Vertices[1]->Pos.X, MeshObj.Trgs[c].Vertices[1]->Pos.Y, MeshObj.Trgs[c].Vertices[2]->Pos.X, MeshObj.Trgs[c].Vertices[2]->Pos.Y);
-
-        p_exact = PressureAnalyticalSolution_TaylorGreen(xc, yc);
-        p = MeshObj.Trgs[c].Pressure;
-        elem_vol = MeshObj.Trgs[c].Area;
-        
-        // Calculate the volume of the node control volume
-        node_vol[MeshObj.Trgs[c].Vertices[0]->Index] += elem_vol / 3.0;
-        node_vol[MeshObj.Trgs[c].Vertices[1]->Index] += elem_vol / 3.0;
-        node_vol[MeshObj.Trgs[c].Vertices[2]->Index] += elem_vol / 3.0;
-
-        if (MeshObj.Trgs[c].MaterialId > 0){
-            // Calculate Volume-Weighted L1 Error of Pressure
-            TotalElementVolume += elem_vol;
-            PreL1 += fabs(p_exact - p)*elem_vol;
-        }
-    }
-    PreL1 /= TotalElementVolume;
-
-    for  (v = 0; v < vSize; v++)
-    {
-        x = MeshObj.Vertices[v].Pos.X;
-        y = MeshObj.Vertices[v].Pos.Y;
-        
-        // Computational velocity analytical solution
-        VelocityAnalyticalSolution_TaylorGreen(x, y, &vx_exact, &vy_exact);
-        
-        vx = MeshObj.Vertices[v].Velocity.X;
-        vy = MeshObj.Vertices[v].Velocity.Y;
-
-        TotalNodalVolume += node_vol[v];
-        VelL1 += sqrt( (vx - vx_exact)*(vx - vx_exact) + (vy - vy_exact)*(vy - vy_exact) )*node_vol[v];
-    }
-    VelL1 /= TotalNodalVolume;
-
-    // free
-    free(node_vol); node_vol = NULL;
-
-
-    // output
-    printf("TaylorGreen Volume-Weighted L1 error Norm:\n");
-    printf("VelL1 = %e, TotalNodalVolume   = %e\n", VelL1, TotalNodalVolume);
-    printf("PreL1 = %e, TotalElementVolume = %e\n", PreL1, TotalElementVolume);
-}
-
-
-void TaylorGreenOutPutBottomEdgePhysics()
-{
-    int         v = 0, c = 0, vSize = MeshObj.VertsArrLen, cSize = MeshObj.TrgsArrLen;
-    double      x = 0, y = 0, xc = 0, yc = 0;
-    double      vx_exact, vy_exact, vx, vy, p_exact, p;
-    FILE        *fp = NULL;
-    char        vfileName[128] = "";
-    char        cfileName[128] = "";
-
-    /////// For node
-    sprintf(vfileName, "%s.txt", "Velocity_x_BottomEdge");
-    fp = fopen(vfileName, "w");
-
-    fprintf(fp, "x\tvelocity_x\texact\n");
-    for  (v = 0; v < vSize; v++)
-    {
-        if (!MeshObj.Vertices[v].IsOnDownBoundary) continue;
-        
-        x = MeshObj.Vertices[v].Pos.X;
-        y = MeshObj.Vertices[v].Pos.Y;
-        
-        // Computational velocity analytical solution
-        VelocityAnalyticalSolution_TaylorGreen(x, y, &vx_exact, &vy_exact);
-        
-        vx = MeshObj.Vertices[v].Velocity.X;
-        vy = MeshObj.Vertices[v].Velocity.Y;
-
-        fprintf(fp, "%e\t%e\t%e\n", x, vx, vx_exact);
-    }
-    ////
-    fclose(fp);
-
-       
-    /////// For cell
-    // Generates an array of triangle numbers with adjacent vertices
-    int *vnbtrgmark     = (int *) calloc(vSize, sizeof(int));
-    int (*vnbtrg)[25]   = (int(*)[25]) calloc(vSize*25, sizeof(int));
-    // int (*vnbtrg)[25]   = (int *) calloc(vSize*25, sizeof(int));
-    int k, t;
-
-	/// Traversal triangular element
-	for (c = 0; c < cSize; c++)
-	{
-		for (v = 0; v < 3; v++ )
-		{
-			k = MeshObj.Trgs[c].Vertices[v]->Index; // nodal index
-			t = vnbtrgmark[k];
-			vnbtrg[k][t] = c; // Store the index of adjacent triangle elements
-			vnbtrgmark[k]++;  // Count the number of adjacent triangle elements		
-		}
-	}
-
-    sprintf(cfileName, "%s.txt", "Pressure_BottomEdge");
-    fp = fopen(cfileName, "w");
-
-    fprintf(fp, "x\tpressure\texact\n");
-    for (v = 0; v < vSize; v++)
-    {
-        if (!MeshObj.Vertices[v].IsOnDownBoundary) continue;
-        
-        x = MeshObj.Vertices[v].Pos.X;
-        y = MeshObj.Vertices[v].Pos.Y;
-        
-        // Calculate the pressure analytical solution
-        p_exact = PressureAnalyticalSolution_TaylorGreen(x, y);
-        
-        p = 0.0;
-        for(c = 0; c < vnbtrgmark[v]; c++){
-            p += MeshObj.Trgs[ vnbtrg[v][c] ].Pressure;
-        }
-        p /= vnbtrgmark[v];
-        // printf("%f %f %f\n", x, p, p_exact);
-
-        fprintf(fp, "%e\t%e\t%e\n", x, p, p_exact);
-    }
-    ////
-    fclose(fp);
-
-    // 
-    free(vnbtrgmark);
-    free(vnbtrg);
+    // print information
+    printf("Print Gresho L2 Norm:\n");
+    printf("Density  L2 = %e\n", DenL2);
+    printf("Pressure L2 = %e\n", PreL2);
+    printf("Velocity L2 = %e\n", VelL2);
 }

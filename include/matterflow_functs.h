@@ -126,6 +126,8 @@ void DynamicEvolveThermalDiffusion(double deltT);
 
 void CalculateMatterFlowAcc();
 
+void MatterFlowEvolve(double deltT);
+
 void SetStrengthTypeDependentVariables(Triangle trg);
 
 void SetAllDependentVariables(Triangle trg);

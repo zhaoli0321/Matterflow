@@ -1,6 +1,6 @@
 /*! \file  matterflow.h
  *
- *  \brief Main header file for the Matter flow project
+ *  \brief Main header file for the Matterflow project
  *
  *  \note  This header file contains general constants and data structures of
  *         Matterflow. It contains macros and data structure definitions; should not
@@ -28,6 +28,8 @@
 /*---  Macros definition  ---*/
 /*---------------------------*/
 
+// Turn on artificial heat diffusion: 1 on, 0 off.
+#define ThermalDiffusion 1 
 
 #define MAX_VERTS 3000000 //500000;
 #define MAX_TRKPT 10
@@ -55,9 +57,13 @@
 #ifndef max
 #define max(a,b)  (((a)>(b)) ? (a):(b))
 #endif
-///////////
+
 #ifndef min
 #define min(a,b)  (((a)<(b)) ? (a):(b))
+#endif
+
+#ifndef isNAN
+#define isNAN(a)  (((a)!=(a)) ? (true):(false)) /**< is a == NAN? */
 #endif
 ////////////////////////////////////////////////////// define PI
 #ifndef PI
@@ -154,12 +160,14 @@ typedef struct triangle
     /// Scalar viscous stress
     double Viscos;  
 
-    /// The sum of internal stresses in the fluid. 
-    /// Including: pressure, elastic stress and viscous stress. But it does not include stress tensor in the magnetic field.
+    /// The sum of internal stresses in the fluid. Including: pressure and viscous stress. 
 	tensor2D TotalFluidStress;
 
     /// Area of the triangle
     double Area;
+
+    /// The triangular area of the initial mesh used to calculate the viscosity coefficient.
+    double Area0;
 
     /// Heights of the triangle
     double Heights[3];
@@ -167,7 +175,7 @@ typedef struct triangle
     /// Minimum height of the triangle
     double MinHeight;
 
-    /// Three vertex coordinates (auxiliary variable, for periodic meshes)
+    /// Three vertex coordinates (auxiliary variables, for periodic meshes)
 	vec2D CycledPoses[3];
 
     /// Internal energy of the triangle
@@ -175,6 +183,14 @@ typedef struct triangle
 
     /// Temperature of the triangle
     double Temperature;
+
+    /// Artificial thermal(heat) diffusion
+#if ThermalDiffusion
+    /// Thermal Diffusion coefficient
+    double ThermalDiffusionCoeff;
+    /// Internal energy density
+    double InternalEnergyDensity;
+#endif    
 } *Triangle;
 
 
@@ -283,9 +299,11 @@ extern double ROfGas;
 
 extern int HAVE_MF;     
 extern int TaylorGreen;     
+extern int Gresho;     
 
 extern char * modelInfoFileName;
 extern double ViscCoeffTimes; 
+extern double TDCoeffTimes;
 extern double timeStepSafeFactor; 
 extern int TimeNumbers;
 extern double TimeEvolvedRecord;
@@ -306,6 +324,9 @@ extern clock_t Start_time;
 extern clock_t End_time;
 
 
+int atoi(char *);
+double atof(char *);
+int exit(int);
 
 
 #endif /* end if for __MATTERFLOW_HEADER__ */

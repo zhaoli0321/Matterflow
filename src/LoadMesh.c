@@ -280,7 +280,8 @@ void ConvertModelMeshToStandard(struct nodeFromFile nodesFromFile[], int totNode
         ////////////////////////////////////////////// Calculate the area of a triangular element
 		double area;
         area = CalcTrgArea(trg->Vertices[0]->Pos, trg->Vertices[1]->Pos, trg->Vertices[2]->Pos);
-		
+		trg->Area0 = area; 
+
         ////////////////////////////////////////////// Set basic physical quantities such as density, temperature, etc.
         if (trgsFromFile[i].MaterialId > 0)
         {
@@ -300,7 +301,7 @@ void ConvertModelMeshToStandard(struct nodeFromFile nodesFromFile[], int totNode
                 trg->InternalEnergy = trg->Mass * specificEnergy;
             }
         }
-        else if (trgsFromFile[i].MaterialId == 0) // If it is a vacuum unit, it is described by a linear elastic fluid with minimal density
+        else if (trgsFromFile[i].MaterialId == 0) // If it is a vacuum element, it is described by a linear elastic fluid with minimal density
         {
             trg->MaterialId = 0;
             trg->Density = MatParasList[0].NormalDensity;
