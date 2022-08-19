@@ -19,7 +19,7 @@ FILE * MyOpenFile(char * fileName, char * format)
 	fp = fopen(fileName, format);
 	if (fp == NULL)
 	{
-		printf("cannot open file %s", fileName);
+		printf("Cannot open file %s", fileName);
 		ERR("\n");
 	}
 	return(fp);
@@ -36,9 +36,9 @@ bool SearchNextInFile(FILE * fp, char * searchStr)
 			pChSrch = searchStr;
 			do
 			{
-				if ((*(++pChSrch)) == '\0')return(true);
+				if ((*(++pChSrch)) == '\0') return(true);
 				fscanf(fp, "%c", &chGet);
-				if (chGet != (*pChSrch))break;
+				if (chGet != (*pChSrch)) break;
 			} while (true);
 			fseek(fp, (long)(searchStr - pChSrch), SEEK_CUR);
 		}
@@ -63,7 +63,7 @@ bool ContainStr(char * strSource, char * searchStr)
 				if (chGet != (*pChSrch))break;
 			} while (true);
 		}
-	} while ((*position) != '\0');//注意这里修改了。
+	} while ((*position) != '\0');
 	return(false);
 }
 

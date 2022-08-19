@@ -2,7 +2,7 @@ BEGIN {
   inheader=0;
   print "/*! \\file  " name
   print " *"
-  print " *  \\brief Function decoration for the Matterflow package"
+  print " *  \\brief Function declarations for the Matterflow package"
   print " *"
   print " *---------------------------------------------------------------------------------"
   print " *  Copyright (C) 2021-2022 by the CAEP-XTU team. All rights reserved.             "

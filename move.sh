@@ -10,8 +10,5 @@ fi
 
 
 mv Physical_Quantity_Statistics.txt results
-mv Velocity_x_BottomEdge.txt results
-mv Pressure_BottomEdge.txt results
-mv *.log results
 mv -f TecPlot results
 

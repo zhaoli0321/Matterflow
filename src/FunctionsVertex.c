@@ -12,11 +12,22 @@
 #include "matterflow.h"
 #include "matterflow_functs.h"
 
-
-void ClearVertex(Vertex vert)
+/// When the entire full array of vertices is created, the index is initialized and does not need to be changed later
+void CreateVerticesArray(struct vertex * * vertsArrOut)
 {
-    vert->IsDead = false;
-    
+	struct vertex * vertsArr = (struct vertex *)calloc(MAX_VERTS, sizeof(struct vertex));
+	int i;
+	for (i = 0; i < MAX_VERTS; i++)
+	{
+		vertsArr[i].Index = i; 
+		//MakeLockTagString(i, 10, vertsArr[i].LockTag);
+	}
+	(*vertsArrOut) = vertsArr;
+}
+
+/// Clear vertex struct
+void ClearVertex(Vertex vert)
+{   
 	vert->IsOnUpDownBoundary 	= false;
     vert->IsOnUpBoundary 		= false;
     vert->IsOnDownBoundary 		= false;
@@ -26,7 +37,7 @@ void ClearVertex(Vertex vert)
 	vert->IsOnRightBoundary 	= false;
 	
 	vert->Mass = 0;
-    ////////////////////////////////// 临时辅助变量
+    ////////////////////////////////// Temporary auxiliary variables
 	vert->Force = MakeVec2D(0,0);
     vert->ForceForMatterFlow = MakeVec2D(0,0);
 }
@@ -43,3 +54,4 @@ bool VertexArrayContains(Vertex verts[], int vertsLen, Vertex ele)
 	}
 	return(false);
 }
+
