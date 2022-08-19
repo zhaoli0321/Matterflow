@@ -155,10 +155,6 @@ void VelocityAnalyticalSolution_TaylorGreen(double x, double y, double *vx, doub
 
 void TaylorGreenL2Norm();
 
-void VolumeWeightedL1Norm();
-
-void TaylorGreenOutPutBottomEdgePhysics();
-
 void VelocityExactForGresho(double x, double y, double *vx, double *vy);
 
 double PressureExactForGresho(double x, double y);
