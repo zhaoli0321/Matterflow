@@ -350,23 +350,12 @@ void DynamicEvolveThermalDiffusion(double deltT)
 		trg = &Trgs[k];
 		// The vacuum element is not allowed to have internal energy diffusion
 		if (trg->MaterialId <= 0) continue; 
-#if SALTZMAN			
-		if (trg->MaterialId == 1) continue; // material == 1 是活塞单元
-#endif	
 
 		for (i = 0; i < 3; i++)
 		{
 			Triangle trgRight = trg->NeighbourTrgs[i];
 			// If there is no element on the ith side of the triangle, skip
-			if(trgRight == NullTriangle) continue;
-#if SALTZMAN			
-			if (trgRight->MaterialId == 1) continue; // material == 1 是活塞单元
-#endif	
-#if HalfMesh_SALTZMAN
-			// 由于 Saltzman 的网格是镜像翻倍网格，
-			// 为了降低计算量，程序中存的镜像翻倍的网格，但计算的时候只用一半的网格来计算
-			if(trgRight->Index >= TrgsArrLen) continue; // 不流向另一半网格
-#endif						
+			if(trgRight == NullTriangle) continue;						
 			/// The two end positions of the edge and the edge vector
 			vec2D posEnd1 = trg->CycledPoses[i];
 			vec2D posEnd2 = trg->CycledPoses[(i + 1) % 3];
@@ -796,7 +785,6 @@ void SetAllDependentVariablesOfTrgs()
 double DetermineDeltT()
 {
 	double deltTMinGlobal = 1e20; // give a large initial value
-	int deltTNameIDGlobal = -1;
 	int i, TrgsArrLen = MeshObj.TrgsArrLen, t;
 	Triangle Trgs = MeshObj.Trgs;
 	//////////////////////////////////////////////////////////////////// 
@@ -815,7 +803,6 @@ double DetermineDeltT()
 		trg = &Trgs[k];
 		deltTMinOfThisTrg = 1e20;
 		deltTNameIDOfThisTrg = -1;
-		//////////////////////////////
 		if (trg->MaterialId <= 0) continue;
 		///
 
@@ -826,40 +813,7 @@ double DetermineDeltT()
 		if (trg->ViscCoeff == 0) deltTViscous = 1e20;
 		else deltTViscous = timeStepSafeFactor * (trg->MinHeight * trg->MinHeight / (2*trg->ViscCoeff));
 		
-		/// (3-4) Calculate the time-step determined by the velocities and accelerations of the triangle vertices
-		{
-			maxHeightChangeRate = CalcTrgMaxHeightChangeRate(
-				Vec2DSub(trg->CycledPoses[1], trg->CycledPoses[0]),
-				Vec2DSub(trg->CycledPoses[2], trg->CycledPoses[0]),
-				Vec2DSub(trg->Vertices[1]->Velocity, trg->Vertices[0]->Velocity),
-				Vec2DSub(trg->Vertices[2]->Velocity, trg->Vertices[0]->Velocity)
-				);
-			maxHeighChangeRateByAcc = CalcTrgMaxHeightChangeRate(
-				Vec2DSub(trg->CycledPoses[1], trg->CycledPoses[0]),
-				Vec2DSub(trg->CycledPoses[2], trg->CycledPoses[0]),
-				Vec2DSub(Vec2DDivideCValue(trg->Vertices[1]->Force, trg->Vertices[1]->Mass), Vec2DDivideCValue(trg->Vertices[0]->Force, trg->Vertices[0]->Mass)),
-				Vec2DSub(Vec2DDivideCValue(trg->Vertices[2]->Force, trg->Vertices[2]->Mass), Vec2DDivideCValue(trg->Vertices[0]->Force, trg->Vertices[0]->Mass))
-				);
-			/// Calculate time-step from maximum rate of height change
-			if (maxHeightChangeRate < 1e-20)
-			{
-				deltTVertexVelocity = deltTMinOfThisTrg;
-			}
-			else
-			{
-				deltTVertexVelocity = timeStepSafeFactor * (1.0 / maxHeightChangeRate);
-			}
-			/// Calculate the time step from the maximum rate of change of height determined by acceleration
-			if (maxHeighChangeRateByAcc < 1e-20)
-			{
-				deltTVertexAcc = deltTMinOfThisTrg;
-			}
-			else
-			{
-				deltTVertexAcc = timeStepSafeFactor * sqrt(2.0 / maxHeighChangeRateByAcc);
-			}
-		}
-		/// (5) Calculate the time-step determined by the velocity of the matter flow
+		/// (3) Calculate the time-step determined by the velocity of the matter flow
 		{
 			{
 				for (i = 0; i < 3; i++)
@@ -878,7 +832,7 @@ double DetermineDeltT()
 				deltTMatterFlow = timeStepSafeFactor * (0.333 / maxFlowRate);
 			}
 		}
-		///////////////////////////////////////////////// (6) Calculate the time-step determined by the acceleration of the matter flow
+		/// (4) Calculate the time-step determined by the acceleration of the matter flow
 		{
 			{
 				for (i = 0; i < 3; i++)
@@ -895,49 +849,33 @@ double DetermineDeltT()
 			else
 			{
 				deltTMatterFlowAcc = timeStepSafeFactor / maxFlowRateByAcc;
-				// deltTMatterFlowAcc = 0.1 * timeStepSafeFactor / maxFlowRateByAcc;
 			}
 		}
 
-		///////////////////////////////////////////////// Take the smallest time-step
-		if (deltTSoundVelocity < deltTMinOfThisTrg)
+		/// Take the smallest time-step
+		if (deltTSoundVelocity < deltTMinOfThisTrg) 
 		{
 			deltTMinOfThisTrg = deltTSoundVelocity;
-			deltTNameIDOfThisTrg = 0;
 		}
 		if (deltTViscous < deltTMinOfThisTrg)
 		{
 			deltTMinOfThisTrg = deltTViscous;
-			deltTNameIDOfThisTrg = 1;
-		}
-		if (deltTVertexAcc < deltTMinOfThisTrg)
-		{
-			deltTMinOfThisTrg = deltTVertexAcc;
-			deltTNameIDOfThisTrg = 2;
-		}
-		if (deltTVertexVelocity < deltTMinOfThisTrg)
-		{
-			deltTMinOfThisTrg = deltTVertexVelocity;
-			deltTNameIDOfThisTrg = 3;
 		}
 		if (deltTMatterFlow < deltTMinOfThisTrg)
 		{
 			deltTMinOfThisTrg = deltTMatterFlow;
-			deltTNameIDOfThisTrg = 4;
 		}
 		if (deltTMatterFlowAcc < deltTMinOfThisTrg)
 		{
 			deltTMinOfThisTrg = deltTMatterFlowAcc;
-			deltTNameIDOfThisTrg = 5;
 		}
 
-		//////////////////////////////////////////////
+		///
 		if (deltTMinOfThisTrg < deltTMinGlobal)
 		{
 			deltTMinGlobal = deltTMinOfThisTrg;
-			deltTNameIDGlobal = deltTNameIDOfThisTrg;
 		}
 	}
-	////////////////////////////////////////////////////////////////////
+	///
 	return (deltTMinGlobal);
 }

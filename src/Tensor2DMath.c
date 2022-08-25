@@ -169,17 +169,6 @@ tensor2D Tensor2DDivideCValue(tensor2D tensor, double factor)
 }
 
 
-tensor2D DisplaceTensor(vec2D x2, vec2D x3, vec2D x2p, vec2D x3p)
-{
-    tensor2D tensor;
-    double (*u)[2] = tensor.A;
-    u[0][0] = (x3.Y * x2p.X - x2.Y * x3p.X) / (x3.Y * x2.X - x2.Y * x3.X);
-    u[0][1] = (x3.X * x2p.X - x2.X * x3p.X) / (x3.X * x2.Y - x2.X * x3.Y);
-    u[1][0] = (x3.Y * x2p.Y - x2.Y * x3p.Y) / (x3.Y * x2.X - x2.Y * x3.X);
-    u[1][1] = (x3.X * x2p.Y - x2.X * x3p.Y) / (x3.X * x2.Y - x2.X * x3.Y);
-    return (tensor);
-}
-
 /// Traces (i.e., the sum of the diagonals elements)
 double Trace(tensor2D t)
 {
@@ -213,69 +202,10 @@ tensor2D CValueToTensor2D(double c)
 	return(tensor);
 }
 
-/// Decompose tensor t1 into StrainRation + RotateRatio.
-/// where StrainRation is a symmetric tensor,
-///                   ┌     ┐
-/// RotateRatio = vT *│0, -1│
-///                   │1,  0│
-///                   └     ┘
-void TensorDepartion(tensor2D t, tensor2D * Strain, tensor2D * Rotate)
-{
-	double (*A)[2] = t.A;
-    double vT = (A[1][0] - A[0][1]) / 2;
-    Rotate->A[0][0] = 0;
-    Rotate->A[0][1] = -vT;
-    Rotate->A[1][0] = vT;
-    Rotate->A[1][1] = 0;
-    *Strain = Tensor2DSub(t, *Rotate);
-}
-
-/// Calculate the strain rate tensor from the two side vectors of the triangle and the velocity of motion
-tensor2D CalcStrainRateTensor(vec2D x1, vec2D x2, vec2D v1, vec2D v2)
-{
-    tensor2D displaceTensor = DisplaceTensor(x1, x2, v1, v2);
-    tensor2D strainRatio, rotateRatio;
-    TensorDepartion(displaceTensor, &strainRatio, &rotateRatio);
-    return (strainRatio);
-}
-
 /// Calculate strain rate
 double CalcStrainRate(vec2D x1, vec2D x2, vec2D x3, vec2D v1, vec2D v2, vec2D v3)
 {
     double strainRate = (Cross(Vec2DSub(v2,v1), Vec2DSub(x3, x1)) + Cross(Vec2DSub(x2, x1), Vec2DSub(v3, v1)))
                         / ( Cross(Vec2DSub(x2, x1), Vec2DSub(x3, x1)) );
 	return(strainRate);
-}
-
-/// Diagonalization of symmetric tensor
-tensor2D Diagonalize(tensor2D t)
-{
-	double (*A)[2] = t.A;
-    tensor2D diagTensor;
-    /////////////////////////////////////////////////
-    if (fabs(A[0][1]) < 1.0e-15 || fabs(A[0][1]) < 1.0e-10 * (fabs(A[0][0]) + fabs(A[1][1])))
-    {
-        diagTensor.A[0][0] = A[0][0];
-        diagTensor.A[1][1] = A[1][1];
-    }
-    else
-    {
-        double b = (A[1][1] - A[0][0]) / A[0][1];
-        double tanTheta = (-b + sqrt(b * b + 4.0)) / 2.0;
-        double sinTheta = tanTheta / sqrt(1 + tanTheta * tanTheta);
-        if (tanTheta < 1e-15)
-        {
-            diagTensor.A[0][0] = A[0][0];
-            diagTensor.A[1][1] = A[1][1];
-        }
-        else
-        {
-            double cosTheta = sinTheta / tanTheta;
-            /////////////////////////////////////////////////
-            diagTensor.A[0][0] = A[0][0] * cosTheta * cosTheta + A[1][1] * sinTheta * sinTheta - 2 * A[0][1] * sinTheta * cosTheta;
-            diagTensor.A[1][1] = A[0][0] * sinTheta * sinTheta + A[1][1] * cosTheta * cosTheta + 2 * A[0][1] * sinTheta * cosTheta;
-        }
-    }
-    /////////////////////////////////////////////////
-    return (diagTensor);
 }

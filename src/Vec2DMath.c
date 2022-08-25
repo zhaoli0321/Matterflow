@@ -175,15 +175,3 @@ vec2D UnitVec(vec2D vec)
 	vec.Y /= ratio;
 	return (vec);  
 }
-
-/// Calculate the maximum value of the relative change rate for the three heights of the triangle.
-double CalcTrgMaxHeightChangeRate(vec2D r1, vec2D r2, vec2D v1, vec2D v2)
-{
-	// The first step is to calculate the strain rate tensor
-	tensor2D strainRatio = CalcStrainRateTensor(r1, r2, v1, v2);
-	// In the second step, after the strain rate tensor is diagonalized, take the largest diagonal element
-	tensor2D diagTensor = Diagonalize(strainRatio);
-	double maxRatio = max(fabs(diagTensor.A[0][0]), fabs(diagTensor.A[1][1]));
-	//////////////////////////////////////
-	return (maxRatio);
-}
