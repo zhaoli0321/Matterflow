@@ -50,11 +50,11 @@ Compute model information loaded.
 
 HAVE_MF = 1, TotBitmapOutputs = 20 
 
-Times of viscosity coefficient 1.0000
+Times of viscosity coefficient 0.5000
 
 Times of heat diffusion coefficient 0.0000
 
-Time-step factor C_safe = 0.5000
+Time-step factor C_safe = 0.1000
 
 Domain Omega = [0, 1.00] x [0, 1.00]
 
@@ -62,39 +62,39 @@ MinMeshScale = 0.034082, MaxMeshScale = 0.063082, AvgMeshScale = 0.048582
 
 Evolving: 
   0: Iter =      0, t = 0.000000
-  1: Iter =      9, t = 2.677161e-02, deltT = 2.966986e-03, TimeUsed=0.29s
-  2: Iter =     17, t = 5.044303e-02, deltT = 2.952731e-03, TimeUsed=0.31s
-  3: Iter =     26, t = 7.503122e-02, deltT = 2.556436e-03, TimeUsed=0.33s
-  4: Iter =     37, t = 1.007926e-01, deltT = 2.181343e-03, TimeUsed=0.35s
-  5: Iter =     50, t = 1.268001e-01, deltT = 1.861921e-03, TimeUsed=0.37s
-  6: Iter =     64, t = 1.508989e-01, deltT = 1.611252e-03, TimeUsed=0.40s
-  7: Iter =     81, t = 1.761829e-01, deltT = 1.388204e-03, TimeUsed=0.43s
-  8: Iter =    100, t = 2.006417e-01, deltT = 1.205171e-03, TimeUsed=0.46s
-  9: Iter =    122, t = 2.252301e-01, deltT = 1.043844e-03, TimeUsed=0.50s
- 10: Iter =    148, t = 2.503404e-01, deltT = 9.004991e-04, TimeUsed=0.54s
- 11: Iter =    178, t = 2.753701e-01, deltT = 7.783454e-04, TimeUsed=0.59s
- 12: Iter =    213, t = 3.006225e-01, deltT = 6.729622e-04, TimeUsed=0.64s
- 13: Iter =    252, t = 3.250405e-01, deltT = 5.857172e-04, TimeUsed=0.70s
- 14: Iter =    298, t = 3.500962e-01, deltT = 5.091388e-04, TimeUsed=0.77s
- 15: Iter =    351, t = 3.752272e-01, deltT = 4.436587e-04, TimeUsed=0.84s
- 16: Iter =    411, t = 4.000810e-01, deltT = 3.881851e-04, TimeUsed=0.93s
- 17: Iter =    481, t = 4.253269e-01, deltT = 3.366387e-04, TimeUsed=1.03s
- 18: Iter =    560, t = 4.501458e-01, deltT = 2.944729e-04, TimeUsed=1.15s
- 19: Iter =    651, t = 4.752393e-01, deltT = 2.593356e-04, TimeUsed=1.29s
- 20: Iter =    753, t = 5.001532e-01, deltT = 2.310233e-04, TimeUsed=1.43s
+  1: Iter =     43, t = 2.558046e-02, deltT = 5.935042e-04, TimeUsed=0.35s
+  2: Iter =     85, t = 5.043139e-02, deltT = 5.899141e-04, TimeUsed=0.40s
+  3: Iter =    130, t = 7.518717e-02, deltT = 5.116053e-04, TimeUsed=0.47s
+  4: Iter =    183, t = 1.002545e-01, deltT = 4.393897e-04, TimeUsed=0.54s
+  5: Iter =    244, t = 1.250702e-01, deltT = 3.783827e-04, TimeUsed=0.64s
+  6: Iter =    316, t = 1.502880e-01, deltT = 3.255884e-04, TimeUsed=0.73s
+  7: Iter =    398, t = 1.750626e-01, deltT = 2.814595e-04, TimeUsed=0.83s
+  8: Iter =    494, t = 2.001410e-01, deltT = 2.430743e-04, TimeUsed=0.95s
+  9: Iter =    605, t = 2.251272e-01, deltT = 2.091574e-04, TimeUsed=1.09s
+ 10: Iter =    734, t = 2.501246e-01, deltT = 1.800978e-04, TimeUsed=1.25s
+ 11: Iter =    883, t = 2.750074e-01, deltT = 1.553118e-04, TimeUsed=1.44s
+ 12: Iter =   1057, t = 3.000663e-01, deltT = 1.339257e-04, TimeUsed=1.67s
+ 13: Iter =   1258, t = 3.250481e-01, deltT = 1.156535e-04, TimeUsed=1.92s
+ 14: Iter =   1491, t = 3.500709e-01, deltT = 9.998566e-05, TimeUsed=2.21s
+ 15: Iter =   1760, t = 3.750694e-01, deltT = 8.659641e-05, TimeUsed=2.55s
+ 16: Iter =   2070, t = 4.000496e-01, deltT = 7.517478e-05, TimeUsed=2.94s
+ 17: Iter =   2427, t = 4.250554e-01, deltT = 6.542578e-05, TimeUsed=3.39s
+ 18: Iter =   2836, t = 4.500301e-01, deltT = 5.712965e-05, TimeUsed=3.89s
+ 19: Iter =   3304, t = 4.750286e-01, deltT = 5.006250e-05, TimeUsed=4.47s
+ 20: Iter =   3837, t = 5.000258e-01, deltT = 4.403802e-05, TimeUsed=5.15s
 
 
-                            Numerical Simulation Information                              
+                            Numerical Simulation Information                                
 --------------------------------------------------------------------------------------------
-The number of triangles: 1044, the number of vertices: 563, Iter = 753
-Simulation Time:                 1.4400
-MatterFlow Time:                 0.6800 (47.22%)
+The number of triangles: 1044, the number of vertices: 563, Iter = 3837
+Simulation Time:                 5.1600
+MatterFlow Time:                 3.2300 (62.60%)
 --------------------------------------------------------------------------------------------
 
 Print TaylorGreenL2Norm
-Density  L2 = 1.415778e-03
-Pressure L2 = 1.428664e-02
-Velocity L2 = 1.159701e-02
+Density  L2 = 1.143512e-03
+Pressure L2 = 1.694569e-02
+Velocity L2 = 9.235076e-03
 ```
 
 The test results are saved in the "results" directory:
