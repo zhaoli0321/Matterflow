@@ -21,7 +21,7 @@ NodesFileName = "./data/Taylor-Green/0.05/Compute-Mesh-1-Nodes.txt"
 
 CellsFileName = "./data/Taylor-Green/0.05/Compute-Mesh-2-Cells.txt"
 
->> Time Interval of Data Output and Program End Time(us)
+>> Time Interval of Data Output and Program End Time (us)
 
 TimeIntervalForOutput = 0.001
 
