@@ -567,7 +567,7 @@ void MatterFlowEvolve(double deltT)
 				trg->FlowVelocity[i] += trg->FlowAcc[i] * halfDeltT;
 				
 				// An artificial dissipation factor C_diss is introduced in the evolution equation of the matter flow velocity.
-				C_diss = (trg->ViscCoeff * trg->Density + trgNb->ViscCoeff * trgNb->Density) / ((trg->Mass + trgNb->Mass) / 3.0); 
+				C_diss = (trg->ViscCoeff * trg->Density / trg->Area + trgNb->ViscCoeff * trgNb->Density / trgNb->Area) * sideLength * sideLength / ((trg->Mass + trgNb->Mass) / 3.0);
 				trg->FlowVelocity[i] -= trg->FlowVelocity[i] * halfDeltT * C_diss;
 				
 				///
@@ -710,7 +710,8 @@ void SetStrengthTypeDependentVariables(Triangle trg)
 		////////////// Calculate strain rate
 		double strainRatio = CalcStrainRate(trg->CycledPoses[0], trg->CycledPoses[1], trg->CycledPoses[2],
 			trg->Vertices[0]->Velocity, trg->Vertices[1]->Velocity, trg->Vertices[2]->Velocity);
-		/// Calculate the contribution of matter flow to the strain rate (tensor)
+		
+		/// Calculate the contribution of matter flow to the strain rate
 		if (trg->MaterialId > 0 && HAVE_MF)
 		{
 			// Calculate the rate of matter outflow 
@@ -731,13 +732,13 @@ void SetStrengthTypeDependentVariables(Triangle trg)
 				}
 				massFlowOutRatio += 0.5 * trg->FlowVelocity[i] * sideLength * flowDensity;
 			}
-			// Contribution of matter flow to the strain rate (tensor)
-			strainRatio += (0.5 * massFlowOutRatio / trg->Mass);
+			// Contribution of matter flow to the strain rate
+			strainRatio += massFlowOutRatio / trg->Mass;
 		}
 		
 		/// Determine the viscosity coefficient
 		double L = sqrt(trg->Area0); // Using constant length
-		trg->ViscCoeff = ViscCoeffTimes * max(-2.0 * strainRatio * L * L, trg->SoundVelocitySum * L);
+		trg->ViscCoeff = ViscCoeffTimes * max(-strainRatio * L * L, trg->SoundVelocitySum * L);
 		if (isNAN(trg->ViscCoeff)) trg->ViscCoeff = 0;
 
 		/// Calculate viscous stress from strain rate and viscosity coefficient
@@ -747,7 +748,7 @@ void SetStrengthTypeDependentVariables(Triangle trg)
 		trg->TotalFluidStress = CValueToTensor2D(trg->Pressure + trg->Viscos);
 
 #if ThermalDiffusion
-		double c1 = 1.0, c2 = 1.0;	
+		double c1 = 0.5, c2 = 1.0;	
 		double cs = trg->SoundVelocitySum; // speed of sound
 		
 		// The heat diffusion coefficient
@@ -820,8 +821,11 @@ double DetermineDeltT()
 
 		/// (1) Calculate the time-step determined by the speed of sound
 		deltTSoundVelocity = timeStepSafeFactor * trg->MinHeight / trg->SoundVelocitySum;
-		/// (2) Calculate the time-step determined by the viscosity, [G.Scovazzi2012JCP]
-		deltTViscous = timeStepSafeFactor * (trg->MinHeight * trg->MinHeight / trg->ViscCoeff);
+		
+		/// (2) Calculate the time-step determined by the viscosity
+		if (trg->ViscCoeff == 0) deltTViscous = 1e20;
+		else deltTViscous = timeStepSafeFactor * (trg->MinHeight * trg->MinHeight / (2*trg->ViscCoeff));
+		
 		/// (3-4) Calculate the time-step determined by the velocities and accelerations of the triangle vertices
 		{
 			maxHeightChangeRate = CalcTrgMaxHeightChangeRate(

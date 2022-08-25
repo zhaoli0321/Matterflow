@@ -32,7 +32,7 @@ double ViscCoeffTimes = 2;
 double TDCoeffTimes = 0;
 
 /// Time-step factor
-double timeStepSafeFactor = 0.5; 
+double timeStepSafeFactor = 0.1; 
 
 /// Gas Universal Constant
 double ROfGas = 8.3149 * 1.0e-5; // 8.3149*J.mol^-1.k^-1

@@ -243,7 +243,7 @@ tensor2D CalcStrainRateTensor(vec2D x1, vec2D x2, vec2D v1, vec2D v2)
 double CalcStrainRate(vec2D x1, vec2D x2, vec2D x3, vec2D v1, vec2D v2, vec2D v3)
 {
     double strainRate = (Cross(Vec2DSub(v2,v1), Vec2DSub(x3, x1)) + Cross(Vec2DSub(x2, x1), Vec2DSub(v3, v1)))
-        / (Cross(Vec2DSub(x2, x1), Vec2DSub(x3, x1)) + Cross(Vec2DSub(x2, x1), Vec2DSub(x3, x1)));
+                        / ( Cross(Vec2DSub(x2, x1), Vec2DSub(x3, x1)) );
 	return(strainRate);
 }
 
