@@ -190,8 +190,6 @@ void SelfMultiply(tensor2D * t, double factor);
 
 tensor2D Tensor2DDivideCValue(tensor2D tensor, double factor);
 
-tensor2D DisplaceTensor(vec2D x2, vec2D x3, vec2D x2p, vec2D x3p);
-
 double Trace(tensor2D t);
 
 double TraceAverage(tensor2D t);
@@ -200,13 +198,7 @@ double GetTensor2DMaxValue(tensor2D t);
 
 tensor2D CValueToTensor2D(double c);
 
-void TensorDepartion(tensor2D t, tensor2D * Strain, tensor2D * Rotate);
-
-tensor2D CalcStrainRateTensor(vec2D x1, vec2D x2, vec2D v1, vec2D v2);
-
 double CalcStrainRate(vec2D x1, vec2D x2, vec2D x3, vec2D v1, vec2D v2, vec2D v3);
-
-tensor2D Diagonalize(tensor2D t);
 
 
 /*-------- In file: Vec2DMath.c --------*/
@@ -252,7 +244,5 @@ vec2D Vec2DDivideCValue(vec2D vec, double ratio);
 vec2D DirectVec(vec2D v1, vec2D v2);
 
 vec2D UnitVec(vec2D vec);
-
-double CalcTrgMaxHeightChangeRate(vec2D r1, vec2D r2, vec2D v1, vec2D v2);
 
 /* End of matterflow_functs.h */

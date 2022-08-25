@@ -8,7 +8,7 @@ The Lagrangian hydrodynamics are commonly used to simulate problems such as deto
 
 > Li Zhao, Bo Xiao, Ganghua Wang, Haibo Zhao, Jinsong Bai, Chunsheng Feng, Shi Shu,
 >
-> "A Matter Flow Method for Staggered Lagrangian Hydrodynamics on Triangular Grids".
+> "Study on a Matter Flux Method for Staggered Essentially Lagrangian Hydrodynamics on Triangular Grids".
 
 ## Directory Structure
 
@@ -35,7 +35,7 @@ The grid files are located in the data directory.
 
 ```sh
 for example:
-./test.ex -tg 1 -k 1 -cs 0.5 -mf 1 -bn 20 -f ./data/Taylor-Green/0.05/Compute_Model_For_TriAngels.txt
+./test.ex -tg 1 -k 0.5 -mf 1 -f ./data/Taylor-Green/0.05/Compute_Model_For_TriAngels.txt
 ./test.ex -help # Enter -help or --help or -h to output optionals.
 ```
 
@@ -62,33 +62,33 @@ MinMeshScale = 0.034082, MaxMeshScale = 0.063082, AvgMeshScale = 0.048582
 
 Evolving: 
   0: Iter =      0, t = 0.000000
-  1: Iter =     43, t = 2.558046e-02, deltT = 5.935042e-04, TimeUsed=0.35s
-  2: Iter =     85, t = 5.043139e-02, deltT = 5.899141e-04, TimeUsed=0.40s
-  3: Iter =    130, t = 7.518717e-02, deltT = 5.116053e-04, TimeUsed=0.47s
-  4: Iter =    183, t = 1.002545e-01, deltT = 4.393897e-04, TimeUsed=0.54s
+  1: Iter =     43, t = 2.558046e-02, deltT = 5.935042e-04, TimeUsed=0.36s
+  2: Iter =     85, t = 5.043139e-02, deltT = 5.899141e-04, TimeUsed=0.43s
+  3: Iter =    130, t = 7.518717e-02, deltT = 5.116053e-04, TimeUsed=0.49s
+  4: Iter =    183, t = 1.002545e-01, deltT = 4.393897e-04, TimeUsed=0.56s
   5: Iter =    244, t = 1.250702e-01, deltT = 3.783827e-04, TimeUsed=0.64s
   6: Iter =    316, t = 1.502880e-01, deltT = 3.255884e-04, TimeUsed=0.73s
-  7: Iter =    398, t = 1.750626e-01, deltT = 2.814595e-04, TimeUsed=0.83s
-  8: Iter =    494, t = 2.001410e-01, deltT = 2.430743e-04, TimeUsed=0.95s
-  9: Iter =    605, t = 2.251272e-01, deltT = 2.091574e-04, TimeUsed=1.09s
- 10: Iter =    734, t = 2.501246e-01, deltT = 1.800978e-04, TimeUsed=1.25s
- 11: Iter =    883, t = 2.750074e-01, deltT = 1.553118e-04, TimeUsed=1.44s
+  7: Iter =    398, t = 1.750626e-01, deltT = 2.814595e-04, TimeUsed=0.84s
+  8: Iter =    494, t = 2.001410e-01, deltT = 2.430743e-04, TimeUsed=0.96s
+  9: Iter =    605, t = 2.251272e-01, deltT = 2.091574e-04, TimeUsed=1.10s
+ 10: Iter =    734, t = 2.501246e-01, deltT = 1.800978e-04, TimeUsed=1.26s
+ 11: Iter =    883, t = 2.750074e-01, deltT = 1.553118e-04, TimeUsed=1.46s
  12: Iter =   1057, t = 3.000663e-01, deltT = 1.339257e-04, TimeUsed=1.67s
  13: Iter =   1258, t = 3.250481e-01, deltT = 1.156535e-04, TimeUsed=1.92s
- 14: Iter =   1491, t = 3.500709e-01, deltT = 9.998566e-05, TimeUsed=2.21s
- 15: Iter =   1760, t = 3.750694e-01, deltT = 8.659641e-05, TimeUsed=2.55s
- 16: Iter =   2070, t = 4.000496e-01, deltT = 7.517478e-05, TimeUsed=2.94s
+ 14: Iter =   1491, t = 3.500709e-01, deltT = 9.998566e-05, TimeUsed=2.22s
+ 15: Iter =   1760, t = 3.750694e-01, deltT = 8.659641e-05, TimeUsed=2.56s
+ 16: Iter =   2070, t = 4.000496e-01, deltT = 7.517478e-05, TimeUsed=2.95s
  17: Iter =   2427, t = 4.250554e-01, deltT = 6.542578e-05, TimeUsed=3.39s
- 18: Iter =   2836, t = 4.500301e-01, deltT = 5.712965e-05, TimeUsed=3.89s
- 19: Iter =   3304, t = 4.750286e-01, deltT = 5.006250e-05, TimeUsed=4.47s
+ 18: Iter =   2836, t = 4.500301e-01, deltT = 5.712965e-05, TimeUsed=3.92s
+ 19: Iter =   3304, t = 4.750286e-01, deltT = 5.006250e-05, TimeUsed=4.49s
  20: Iter =   3837, t = 5.000258e-01, deltT = 4.403802e-05, TimeUsed=5.15s
 
 
-                            Numerical Simulation Information                                
+                            Numerical Simulation Information                              
 --------------------------------------------------------------------------------------------
 The number of triangles: 1044, the number of vertices: 563, Iter = 3837
 Simulation Time:                 5.1600
-MatterFlow Time:                 3.2300 (62.60%)
+MatterFlow Time:                 3.2000 (62.02%)
 --------------------------------------------------------------------------------------------
 
 Print TaylorGreenL2Norm
